@@ -1,0 +1,13 @@
+stats:
+    physical_damage: '&8■ &f&oPhys. Damage &c%PHYSICAL_DAMAGE.RESULT%'
+    magical_damage: '&8■ &f&oMagic Damage &c%MAGICAL_DAMAGE.RESULT%'
+    physical_defense: '&8■ &f&oPhys. Defense &c%PHYSICAL_DEFENSE.RESULT%'
+    magical_defense: '&8■ &f&oMagic Defense &c%MAGICAL_DEFENSE.RESULT%'
+    block_rate: '&8■ &f&oBlock Rate &c%BLOCK_RATE.RESULT%%'
+    block_amount: '&8■ &f&oBlock Amount &c%BLOCK_AMOUNT.RESULT%%'
+    critical_rate: '&8■ &f&oCrit. Rate &c%CRITICAL_RATE.RESULT%%'
+    critical_damage: '&8■ &f&oCrit. Damage &c%CRITICAL_DAMAGE.RESULT%%'
+    durability: '&a%DURABILITY.CURRENT% &7/ &f&o%DURABILITY.RESULT%'
+    increase_damage: '&8■ &f&oIncrease Damage &c%INCREASE_DAMAGE.RESULT%%'
+    decrease_damage: '&8■ &f&oDecrease Damage &c%DECERASE_DAMAGE.RESULT%%'
+    attack_speed: '&8■ &f&oAttack Speed &c%ATTACK_SPEED.RESULT%'

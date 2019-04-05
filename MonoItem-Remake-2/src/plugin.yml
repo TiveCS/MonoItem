@@ -1,0 +1,13 @@
+name: MonoItem
+api-version: 1.13
+version: 1.0
+author: TiveCS
+main: team.rehoukrelstudio.monoitem.MonoItem
+softdepend:
+  - RPGItems
+  - HolographicDisplays
+commands:
+    monoitem:
+      permission: monoitem.command
+      description: monoitem editor main command
+      aliases: [mi, monoi, mitem, monitem, moni]
