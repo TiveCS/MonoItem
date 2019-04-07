@@ -19,6 +19,8 @@ public abstract class NBTManager {
     public abstract void customNbtData(String key, Object obj);
     public abstract void deleteCustomNbtData(String key);
 
+    public abstract byte getTypeId();
+    public abstract Object get(String key);
     public abstract int getInteger(String key);
     public abstract double getDouble(String key);
     public abstract byte getByte(String key);

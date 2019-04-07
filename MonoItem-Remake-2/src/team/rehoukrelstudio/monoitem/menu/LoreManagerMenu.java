@@ -2,6 +2,8 @@ package team.rehoukrelstudio.monoitem.menu;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.ItemStack;
@@ -42,7 +44,7 @@ public class LoreManagerMenu extends MenuManager {
                     ItemMeta meta = icon.getItemMeta();
                     meta.setDisplayName(ChatColor.GREEN + "Add new line");
                     icon.setItemMeta(meta);
-                    slot.put(i + 1, icon);
+                    slot.put(i, icon);
                     continue;
                 }
                 ItemStack icon = new ItemStack(Material.BOOK);
@@ -60,12 +62,47 @@ public class LoreManagerMenu extends MenuManager {
 
     @Override
     public void clickAction(InventoryClickEvent event) {
-
+        Player p = (Player) event.getWhoClicked();
+        int slot = event.getSlot();
+        if (event.getClickedInventory().getItem(slot).equals(getIconData().get(-1).get(slot))){
+            fm.open((Player) event.getWhoClicked());
+        }else{
+            if (getIconData().get(getPage()).containsKey(slot)){
+                int line = slot + ((getPage() - 1)*((getRows() - 1)*9));
+                if (event.getClick().equals(ClickType.DROP)){
+                    factory.removeLore(line);
+                    p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[ Line &a" + (line + 1) + "&7 lore has been removed ]"));
+                    fm.getMapCustomObject().put("item", factory.getItem());
+                    HashMap<Integer, ItemStack> a = fm.getIconData().get(-1);
+                    a.put(4, (ItemStack) fm.getMapCustomObject().get("item"));
+                    fm.putIconData(-1, new HashMap<>(a));
+                    open(p);
+                    stage.remove(p);
+                }else {
+                    event.getWhoClicked().sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[ Please input a text to edit lore on line &a" + (line + 1) + "&7 ]"));
+                    stage.put((Player) event.getWhoClicked(), "LORE:" + line);
+                    event.getWhoClicked().closeInventory();
+                }
+            }
+        }
     }
 
     @Override
     public void chatAction(AsyncPlayerChatEvent event) {
+        Player p = event.getPlayer();
+        String msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
+        String stg = stage.get(p).toString();
+        if (stg.startsWith("LORE:")){
+            int line = Integer.parseInt(stg.split(":")[1]);
+            factory.setLore(msg, factory.getPlaceholder(), line);
+        }
 
+        fm.getMapCustomObject().put("item", factory.getItem());
+        HashMap<Integer, ItemStack> a = fm.getIconData().get(-1);
+        a.put(4, (ItemStack) fm.getMapCustomObject().get("item"));
+        fm.putIconData(-1, new HashMap<>(a));
+        open(p);
+        stage.remove(p);
     }
 
     @Override

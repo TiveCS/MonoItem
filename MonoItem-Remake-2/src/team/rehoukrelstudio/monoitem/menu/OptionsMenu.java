@@ -8,7 +8,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
-import team.rehoukrelstudio.monoitem.api.OptionEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
 
 import java.util.Arrays;
 import java.util.HashMap;

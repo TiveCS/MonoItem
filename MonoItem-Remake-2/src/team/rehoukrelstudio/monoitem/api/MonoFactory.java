@@ -1,12 +1,14 @@
 package team.rehoukrelstudio.monoitem.api;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import team.rehoukrelstudio.monoitem.MonoItem;
+import team.rehoukrelstudio.monoitem.api.ability.Ability;
+import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import team.rehoukrelstudio.monoitem.nms.nbt.NBTManager;
 import utils.DataConverter;
 import utils.language.Placeholder;
@@ -73,6 +75,19 @@ public class MonoFactory {
         getPlaceholder().addReplacer(option.name(), status + "");
         setItem(getNbtManager().getItem());
         setMeta(getItem().getItemMeta());
+    }
+
+    public void addAbility(Ability ability, boolean replace, Ability.TriggerType trigger){
+
+    }
+
+    public void removeLore(int line){
+        List<String> list = getMeta().hasLore() ? getMeta().getLore() : new ArrayList<>();
+        if (!list.isEmpty() && (list.get(line) != null || list.size() - 1 >= line)){
+            list.remove(line);
+        }
+        getMeta().setLore(list);
+        getItem().setItemMeta(getMeta());
     }
 
     public void setLore(String text, Placeholder plc, int line){

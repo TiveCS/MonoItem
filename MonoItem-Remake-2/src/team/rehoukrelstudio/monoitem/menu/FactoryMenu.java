@@ -47,12 +47,26 @@ public class FactoryMenu extends MenuManager {
         addTwoWayConnectedMenu("STATS", INSTANCE_KEY, sm);
     }
 
+    public void loadMainItem(ItemStack main){
+        HashMap<Integer, ItemStack> item = new HashMap<>();
+        addMapCustomObject("item", main);
+        addMapCustomObject("factory", new MonoFactory((ItemStack) getMapCustomObject().get("item")));
+        item.put(4, (ItemStack) getMapCustomObject().get("item"));
+        putIconData(-1, item);
+    }
+
     @Override
     public void clickAction(InventoryClickEvent event) {
         if (event.getClickedInventory().getItem(event.getSlot()).equals(getIconData().get(-1).get(4))){
             event.getWhoClicked().getInventory().addItem(getIconData().get(-1).get(4));
         }
         else if (getPage() == 1){
+            if (event.getSlot() == 15){
+                ab.open((Player) event.getWhoClicked());
+            }
+            if (event.getSlot() == 14){
+                lm.open((Player) event.getWhoClicked());
+            }
             if (event.getSlot() == 13){
                 om.open((Player) event.getWhoClicked());
             }

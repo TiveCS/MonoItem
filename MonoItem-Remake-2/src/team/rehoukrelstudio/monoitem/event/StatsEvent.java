@@ -14,8 +14,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
-import team.rehoukrelstudio.monoitem.api.OptionEnum;
-import team.rehoukrelstudio.monoitem.api.StatsEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import utils.DataConverter;
 
 import java.util.ArrayList;
@@ -52,6 +52,10 @@ public class StatsEvent implements Listener {
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event){
 
+        if (event.isCancelled()){
+            return;
+        }
+
         LivingEntity attacker = null, victim = null;
         if (event.getDamager() instanceof LivingEntity){
             attacker = (LivingEntity) event.getDamager();
@@ -71,13 +75,16 @@ public class StatsEvent implements Listener {
         int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
         boolean useMonoItem = false, useMonoItemDefense = false;
 
-        Location loc = attacker.getLocation(), eye = attacker.getEyeLocation();
         if (!event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK)) {
             for (ItemStack item : ai) {
                 MonoFactory factory = new MonoFactory(item);
+                if (item.getType().equals(Material.AIR)){
+                    continue;
+                }
 
                 if (factory.getNbtManager().hasNbt(OptionEnum.DISABLE_ON_LAND.getState())){
                     if (factory.getNbtManager().getBoolean(OptionEnum.DISABLE_ON_LAND.getState())){
+                        Location loc = attacker.getLocation(), eye = attacker.getEyeLocation();
                         if (!loc.getBlock().isLiquid() && !eye.getBlock().isLiquid()) {
                             continue;
                         }
@@ -85,6 +92,7 @@ public class StatsEvent implements Listener {
                 }
                 if (factory.getNbtManager().hasNbt(OptionEnum.DISABLE_ON_WATER.getState())){
                     if (factory.getNbtManager().getBoolean(OptionEnum.DISABLE_ON_WATER.getState())){
+                        Location loc = attacker.getLocation(), eye = attacker.getEyeLocation();
                         if (loc.getBlock().isLiquid() && eye.getBlock().isLiquid()) {
                             continue;
                         }
@@ -104,6 +112,9 @@ public class StatsEvent implements Listener {
             }
 
             for (ItemStack item : vi) {
+                if (item.getType().equals(Material.AIR)){
+                    continue;
+                }
                 MonoFactory factory = new MonoFactory(item);
                 if (useMonoItemDefense == false) {
                     if (factory.hasStats(StatsEnum.PHYSICAL_DEFENSE) || factory.hasStats(StatsEnum.MAGICAL_DEFENSE)) {
@@ -142,7 +153,7 @@ public class StatsEvent implements Listener {
 
             if (DataConverter.chance(blockRate)) {
                 event.setDamage(event.getDamage() - event.getDamage() * blockAmount / 100);
-                victim.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, victim.getLocation(), 5, 0,0,0, 0.5);
+                victim.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, victim.getLocation(), 2, 0,0,0, 0.2);
                 victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ZOMBIE_ATTACK_IRON_DOOR, 1, 1);
             }
 

@@ -1,5 +1,6 @@
 package team.rehoukrelstudio.monoitem.nms.nbt;
 
+import net.minecraft.server.v1_13_R2.NBTBase;
 import net.minecraft.server.v1_13_R2.NBTTagCompound;
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +46,42 @@ public class NBTManager_1_13_R2 extends NBTManager{
         compound.remove(key);
         nmsItem.setTag(compound);
         setItem(CraftItemStack.asBukkitCopy(nmsItem));
+    }
+
+    @Override
+    public byte getTypeId() {
+        net.minecraft.server.v1_13_R2.ItemStack nmsItem = CraftItemStack.asNMSCopy(getItem());
+        NBTTagCompound compound = nmsItem.hasTag() ? nmsItem.getTag() : new NBTTagCompound();
+        return compound.getTypeId();
+    }
+
+    @Override
+    public Object get(String key) {
+        Object obj = null;
+        try{
+            obj = getDouble(key);
+        }catch(Exception e){}
+        if (obj == null){
+            try{
+                obj = getByte(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getInteger(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getBoolean(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getString(key);
+            }catch(Exception e){}
+        }
+        return obj;
     }
 
     @Override

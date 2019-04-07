@@ -48,6 +48,42 @@ public class NBTManager_1_13_R1 extends NBTManager{
     }
 
     @Override
+    public byte getTypeId() {
+        net.minecraft.server.v1_13_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(getItem());
+        NBTTagCompound compound = nmsItem.hasTag() ? nmsItem.getTag() : new NBTTagCompound();
+        return compound.getTypeId();
+    }
+
+    @Override
+    public Object get(String key) {
+        Object obj = null;
+        try{
+            obj = getDouble(key);
+        }catch(Exception e){}
+        if (obj == null){
+            try{
+                obj = getByte(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getInteger(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getBoolean(key);
+            }catch(Exception e){}
+        }
+        if (obj == null){
+            try{
+                obj = getString(key);
+            }catch(Exception e){}
+        }
+        return obj;
+    }
+
+    @Override
     public int getInteger(String key) {
         net.minecraft.server.v1_13_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy(getItem());
         NBTTagCompound compound = nmsItem.hasTag() ? nmsItem.getTag() : new NBTTagCompound();
