@@ -2,6 +2,8 @@ prefix: '&8( &dMonoItem &8)'
 plugin-hook:
   RPGitems: false
   HolographicDisplays: false
+settings:
+  offhand-remedy: 0.2
 base-stats-modifier:
   critical_rate: 5
   critical_damage: 10

@@ -74,6 +74,7 @@ public class StatsEvent implements Listener {
         double totalDamage = 0, totalDefense = 0;
         int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
         boolean useMonoItem = false, useMonoItemDefense = false;
+        double offhandRemedy = plugin.getConfig().getDouble("settings.offhand-remedy");
 
         if (!event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK)) {
             for (ItemStack item : ai) {
@@ -105,10 +106,19 @@ public class StatsEvent implements Listener {
                     }
                 }
 
-                physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE);
-                magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE);
-                critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE);
-                critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE);
+                if (item.equals(attacker.getEquipment().getItemInOffHand())){
+                    physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE)*offhandRemedy;
+                    magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE)*offhandRemedy;
+                    critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE)*offhandRemedy;
+                    critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE)*offhandRemedy;
+                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED))*offhandRemedy;
+                }else {
+                    physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE);
+                    magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE);
+                    critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE);
+                    critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE);
+                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                }
             }
 
             for (ItemStack item : vi) {
@@ -121,11 +131,17 @@ public class StatsEvent implements Listener {
                         useMonoItemDefense = true;
                     }
                 }
-
-                physicalArmor += factory.getStatsResult(StatsEnum.PHYSICAL_DEFENSE);
-                magicArmor += factory.getStatsResult(StatsEnum.MAGICAL_DEFENSE);
-                blockAmount += factory.getStatsResult(StatsEnum.BLOCK_AMOUNT);
-                blockRate += factory.getStatsResult(StatsEnum.BLOCK_RATE);
+                if (item.equals(attacker.getEquipment().getItemInOffHand())){
+                    physicalArmor += factory.getStatsResult(StatsEnum.PHYSICAL_DEFENSE)*offhandRemedy;
+                    magicArmor += factory.getStatsResult(StatsEnum.MAGICAL_DEFENSE)*offhandRemedy;
+                    blockAmount += factory.getStatsResult(StatsEnum.BLOCK_AMOUNT)*offhandRemedy;
+                    blockRate += factory.getStatsResult(StatsEnum.BLOCK_RATE)*offhandRemedy;
+                }else {
+                    physicalArmor += factory.getStatsResult(StatsEnum.PHYSICAL_DEFENSE);
+                    magicArmor += factory.getStatsResult(StatsEnum.MAGICAL_DEFENSE);
+                    blockAmount += factory.getStatsResult(StatsEnum.BLOCK_AMOUNT);
+                    blockRate += factory.getStatsResult(StatsEnum.BLOCK_RATE);
+                }
             }
 
             if (useMonoItem) {
@@ -139,7 +155,7 @@ public class StatsEvent implements Listener {
                         if (p.hasCooldown(p.getInventory().getItemInMainHand().getType())){
                             event.setDamage(0);
                         }else {
-                            p.setCooldown(p.getInventory().getItemInMainHand().getType(), cooldown);
+                            p.setCooldown(p.getInventory().getItemInMainHand().getType(), cooldown >= 0 ? cooldown : 0);
                         }
                     }
                 }

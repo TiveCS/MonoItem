@@ -5,10 +5,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
@@ -16,10 +18,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
 import team.rehoukrelstudio.monoitem.nms.nbt.NBTManager;
+import utils.DataConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 
 public abstract class Ability {
 
@@ -38,12 +42,12 @@ public abstract class Ability {
     private boolean isCooldown = false;
 
     public enum TriggerType{
-        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK
+        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK, PROJECTILE_HIT
     }
 
     // value type data is double only
     public enum AbilityModifier{
-        COOLDOWN, DAMAGE, STAMINA, MINIMUM, MAXIMUM, RESULT;
+        COOLDOWN, DAMAGE, STAMINA, MINIMUM, MAXIMUM, RESULT, CHANCE;
     }
 
     public enum AbilitySerialize{
@@ -67,6 +71,7 @@ public abstract class Ability {
             }
         }
         this.FORMAT = getConfig().getString("ability." + getId().toLowerCase());
+        loadDefaultData();
     }
 
     public Ability(String id, String display, ItemStack icon){
@@ -83,14 +88,27 @@ public abstract class Ability {
             }
         }
         this.FORMAT = getConfig().getString("ability." + getId().toLowerCase());
+        loadDefaultData();
+    }
+
+    public static boolean chance(double chance){
+        return chance < 100 ? (new Random().nextDouble()*100 <= chance) : true;
+    }
+
+    public void initializeResult(){
+        double min = getModifier().containsKey(AbilityModifier.MINIMUM) ? getModifier().get(AbilityModifier.MINIMUM) : 0,
+                max = getModifier().containsKey(AbilityModifier.MAXIMUM) ? getModifier().get(AbilityModifier.MAXIMUM) : 0;
+        setModifier(AbilityModifier.RESULT, DataConverter.randomDouble(min, max));
     }
 
     // Abstract
+    public abstract void loadDefaultData();
 
-    public abstract void entityShoot(EntityShootBowEvent event, LivingEntity executor, ItemStack item);
-    public abstract void entityDamageByEntity(EntityDamageByEntityEvent event, LivingEntity executor, ItemStack item);
-    public abstract void playerClick(PlayerInteractEvent event, Player executor, ItemStack item);
-    public abstract void playerSneak(PlayerToggleSneakEvent event, Player executor, ItemStack item);
+    public abstract void projectileHit(ProjectileHitEvent event, MonoFactory factory);
+    public abstract void entityShoot(EntityShootBowEvent event, LivingEntity executor, MonoFactory factory);
+    public abstract void entityDamageByEntity(EntityDamageByEntityEvent event, Damageable attacker, Damageable victim, MonoFactory factory);
+    public abstract void playerClick(PlayerInteractEvent event, MonoFactory factory);
+    public abstract void playerSneak(PlayerToggleSneakEvent event, MonoFactory factory);
 
     // Action
 
@@ -102,6 +120,7 @@ public abstract class Ability {
         try {
             NBTManager nbt = factory.getNbtManager();
             nbt.customNbtData(getId() + ".TRIGGER_TYPE", triggerType.name());
+            factory.getPlaceholder().addReplacer(getId() + ".TRIGGER_TYPE", triggerType.name());
 
             for (AbilityModifier mod : getModifier().keySet()) {
                 String path = getId() + "." + mod.name();
@@ -129,6 +148,7 @@ public abstract class Ability {
             getCustomModifier().clear();
             setTriggerType(TriggerType.DAMAGE);
         }catch(Exception e){e.printStackTrace();}
+        loadDefaultData();
     }
 
     public void set(ItemStack item, TriggerType triggerType){
@@ -186,6 +206,18 @@ public abstract class Ability {
         for (Ability a : ability){
             abilities.put(a.getId(), a);
         }
+    }
+
+    public void setCustomModifier(HashMap<String, Object> customModifier) {
+        this.customModifier = customModifier;
+    }
+
+    public void setModifier(HashMap<AbilityModifier, Double> modifier) {
+        this.modifier = modifier;
+    }
+
+    public void setCustomModifierClazz(HashMap<String, Class> customModifierClazz) {
+        this.customModifierClazz = customModifierClazz;
     }
 
     public void addCustomModifier(String modifier, Class instance){

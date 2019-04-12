@@ -34,6 +34,7 @@ public class FactoryMenu extends MenuManager {
         item.put(13, new ItemBuilder(new ItemStack(Material.COMPASS), "&aOptions Manager").finish().getItem());
         item.put(14, new ItemBuilder(new ItemStack(Material.WRITABLE_BOOK), "&aLore Manager").finish().getItem());
         item.put(15, new ItemBuilder(new ItemStack(Material.BLAZE_ROD), "&aAbility Manager").finish().getItem());
+        item.put(16, new ItemBuilder(new ItemStack(Material.ENCHANTING_TABLE), "&aEnchant Item").finish().getItem());
         putIconData(1, item);
 
         sm = new StatsMenu();
