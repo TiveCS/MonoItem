@@ -125,7 +125,7 @@ public abstract class Ability {
             for (AbilityModifier mod : getModifier().keySet()) {
                 String path = getId() + "." + mod.name();
                 nbt.customNbtData(path, getModifier().get(mod));
-                factory.getPlaceholder().addReplacer(path, getModifier().get(mod).toString());
+                factory.getPlaceholder().addReplacer(path, DataConverter.returnDecimalFormated(2, Double.parseDouble(getModifier().get(mod).toString())));
             }
 
             for (String key : getCustomModifier().keySet()) {
@@ -156,7 +156,7 @@ public abstract class Ability {
         set(factory, triggerType);
     }
 
-    public void startCooldown(LivingEntity entity, int cooldown){
+    public void startCooldown(LivingEntity entity, long cooldown){
         String cdPath = getId() + "." + AbilityModifier.COOLDOWN.name();
         this.isCooldown = true;
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {

@@ -1,20 +1,23 @@
 package team.rehoukrelstudio.monoitem.api.ability;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
+import utils.ParticleManager;
 
 import java.util.HashMap;
 
 public class IronSkin extends Ability {
     public IronSkin() {
-        super("IRONSKIN", "Iron Skin", Material.IRON_CHESTPLATE);
+        super("IRON_SKIN", "Iron Skin", Material.IRON_CHESTPLATE);
     }
 
     @Override
@@ -41,10 +44,22 @@ public class IronSkin extends Ability {
 
     @Override
     public void entityDamageByEntity(EntityDamageByEntityEvent event, Damageable attacker, Damageable victim, MonoFactory factory) {
-        if (getTriggerType().equals(TriggerType.DAMAGE_TAKEN)){
+        if (getTriggerType().equals(TriggerType.DAMAGE_TAKEN) && !isCooldown()){
             HashMap<AbilitySerialize, Object> map = getAbilitySerialize(factory);
             setCustomModifier((HashMap<String, Object>) map.get(AbilitySerialize.CUSTOM_MODIFIER));
             setModifier((HashMap<AbilityModifier, Double>) map.get(AbilitySerialize.DEFAULT_MODIFIER));
+
+            long cooldown = Math.round(getModifier().get(AbilityModifier.COOLDOWN));
+            if (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)){
+                event.setCancelled(true);
+            }else {
+                double knockback = Double.parseDouble(getCustomModifier().get("knockbackpower").toString()),
+                        decrease = Double.parseDouble(getCustomModifier().get("damagedecrease").toString());
+                event.setDamage(event.getDamage() - event.getDamage() * decrease / 100);
+                attacker.setVelocity(attacker.getLocation().getDirection().multiply(-1 * (knockback)));
+            }
+            startCooldown((LivingEntity) victim, cooldown);
+            victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ELDER_GUARDIAN_FLOP, 1, 1);
         }
     }
 

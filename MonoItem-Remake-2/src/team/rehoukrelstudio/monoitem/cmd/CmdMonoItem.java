@@ -54,14 +54,18 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                         }catch(Exception e){return false;}
                     }
                 }
-                if (strings.length > 2){
+                if (strings.length > 1){
                     if (strings[0].equalsIgnoreCase("ability")) {
                         MonoFactory factory = new MonoFactory(p.getInventory().getItemInMainHand());
                         Ability ability;
                         Ability.TriggerType type;
                         try{
                             ability = Ability.abilities.get(strings[1]);
-                            type = Ability.TriggerType.valueOf(strings[2].toUpperCase());
+                            if (strings.length > 2) {
+                                type = Ability.TriggerType.valueOf(strings[2].toUpperCase());
+                            }else{
+                                type = ability.getTriggerType();
+                            }
                         }catch (Exception e){return true;}
                         List<String> modifiers = new ArrayList<>();
                         for (Ability.AbilityModifier mod : Ability.AbilityModifier.values()){
@@ -120,6 +124,7 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                     ability = Ability.abilities.get(strings[1]);
                 }catch(Exception e){}
                 if (ability != null) {
+                    List<String> arr = Arrays.asList(strings);
                     if (strings.length == 3){
                         for (Ability.TriggerType type : Ability.TriggerType.values()){
                             list.add(type.name());
@@ -127,10 +132,14 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                         return list;
                     }else {
                         for (Ability.AbilityModifier modifier : Ability.AbilityModifier.values()) {
-                            list.add(modifier.name().toLowerCase() + ":");
+                            if (!arr.contains(modifier.name().toLowerCase() + ":")) {
+                                list.add(modifier.name().toLowerCase() + ":");
+                            }
                         }
                         for (String key : ability.getCustomModifierClazz().keySet()) {
-                            list.add(key + ":");
+                            if (!arr.contains(key + ":")) {
+                                list.add(key + ":");
+                            }
                         }
                     }
                 }

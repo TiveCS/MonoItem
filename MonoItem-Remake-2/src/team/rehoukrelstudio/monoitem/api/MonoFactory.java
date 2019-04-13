@@ -16,6 +16,7 @@ import utils.language.Placeholder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MonoFactory {
 
@@ -41,7 +42,14 @@ public class MonoFactory {
     public void setStats(StatsEnum stats, double min, double max, boolean unidentified){
 
         int lineLore = getNbtManager().hasNbt(stats.getLore()) ? getNbtManager().getInteger(stats.getLore()) : ( getMeta().hasLore() ? getMeta().getLore().size() : 0);
-        double result = DataConverter.randomDouble(min, max);
+        double result = 0;
+        if (stats.equals(StatsEnum.ATTACK_SPEED)){
+            result = new Random().nextInt((int) max);
+            result = result < min ? min : result;
+        }else{
+            result = DataConverter.randomDouble(min, max);
+        }
+
         if (!getNbtManager().hasNbt(stats.getLore())) {
             getNbtManager().customNbtData(stats.getLore(), lineLore);
         }

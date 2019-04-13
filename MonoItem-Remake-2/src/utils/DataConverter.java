@@ -47,7 +47,14 @@ public class DataConverter {
 			m = m.concat("0");
 		}
 		NumberFormat f = new DecimalFormat(m);
-		return f.format(num);
+		String text = f.format(num);
+		while (text.endsWith("0")){
+			text = text.substring(0, text.length() - 1);
+		}
+		if (text.endsWith(".")){
+			text = text.substring(0, text.length() - 1);
+		}
+		return text;
 	}
 
 	public static boolean chance(double num){

@@ -55,7 +55,6 @@ public class Reflection extends Ability {
                         p.setCooldown(p.getInventory().getItemInMainHand().getType(), 0);
                         p.playSound(p.getLocation(), Sound.ENTITY_FISHING_BOBBER_THROW, 1,1);
                         startCooldown(p, cooldown);
-                        p.sendMessage("Reflection executed");
                     }, 1L);
                 }
             }

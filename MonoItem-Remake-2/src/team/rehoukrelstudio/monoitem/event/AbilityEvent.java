@@ -2,10 +2,13 @@ package team.rehoukrelstudio.monoitem.event;
 
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
@@ -38,6 +41,28 @@ public class AbilityEvent implements Listener {
             items.add(entity.getEquipment().getBoots());
         }
         return items;
+    }
+
+    @EventHandler
+    public void playerClick(PlayerInteractEvent event){
+        Player p = event.getPlayer();
+        List<ItemStack> ai = p != null ? getCompleteEquipment(p) : new ArrayList<>();
+        if (ai.isEmpty()){
+            return;
+        }
+        for (ItemStack item : ai){
+            MonoFactory factory = new MonoFactory(item);
+            NBTManager nbt = factory.getNbtManager();
+            for (Ability ability : Ability.abilities.values()){
+                if (nbt.hasNbt(ability.getId() + ".TRIGGER_TYPE")){
+                    Ability.TriggerType type = Ability.TriggerType.valueOf(nbt.getString(ability.getId() + ".TRIGGER_TYPE"));
+                    if (event.getAction().name().contains(type.name())) {
+                        ability.setTriggerType(type);
+                        ability.playerClick(event, factory);
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
