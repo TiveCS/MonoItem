@@ -18,6 +18,8 @@ import java.util.HashMap;
 public class IronSkin extends Ability {
     public IronSkin() {
         super("IRON_SKIN", "Iron Skin", Material.IRON_CHESTPLATE);
+
+        addAllowedTrigger(TriggerType.DAMAGE_TAKEN);
     }
 
     @Override
@@ -44,7 +46,7 @@ public class IronSkin extends Ability {
 
     @Override
     public void entityDamageByEntity(EntityDamageByEntityEvent event, Damageable attacker, Damageable victim, MonoFactory factory) {
-        if (getTriggerType().equals(TriggerType.DAMAGE_TAKEN) && !isCooldown()){
+        if (getTriggerType().equals(TriggerType.DAMAGE_TAKEN) && !isCooldown((LivingEntity) victim)){
             HashMap<AbilitySerialize, Object> map = getAbilitySerialize(factory);
             setCustomModifier((HashMap<String, Object>) map.get(AbilitySerialize.CUSTOM_MODIFIER));
             setModifier((HashMap<AbilityModifier, Double>) map.get(AbilitySerialize.DEFAULT_MODIFIER));

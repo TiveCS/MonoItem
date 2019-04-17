@@ -7,12 +7,15 @@ import team.rehoukrelstudio.monoitem.event.AbilityEvent;
 import team.rehoukrelstudio.monoitem.event.MenuEvent;
 import team.rehoukrelstudio.monoitem.event.StatsEvent;
 import team.rehoukrelstudio.monoitem.nms.NMSManager;
+import utils.ConfigManager;
 
 import java.io.File;
 
 public class MonoItem extends JavaPlugin {
 
     private NMSManager nmsManager = new NMSManager();
+    public static ConfigManager unidentConfigManager;
+    File unident = new File(this.getDataFolder(), "unidentified-item.yml");
 
     @Override
     public void onEnable() {
@@ -25,6 +28,11 @@ public class MonoItem extends JavaPlugin {
     private void loadConfig() {
         getConfig().options().copyDefaults(true);
         saveConfig();
+
+        if (!unident.exists()) {
+            saveResource("unidentified-item.yml", false);
+        }
+        unidentConfigManager = new ConfigManager(this, unident);
     }
 
     private void loadEvents() {
@@ -39,7 +47,8 @@ public class MonoItem extends JavaPlugin {
     }
 
     private void loadAbilities(){
-        Ability.registerAbility(new Reflection(), new IronSkin());
+        Ability.registerAbility(new Reflection(), new IronSkin(), new Leap(), new VorpalSlash(), new ArrowStorm()
+        ,new TeleportDamage());
     }
 
     public NMSManager getNmsManager() {

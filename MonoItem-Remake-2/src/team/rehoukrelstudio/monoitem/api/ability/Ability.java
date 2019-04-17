@@ -7,7 +7,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -17,32 +16,34 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
+import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import team.rehoukrelstudio.monoitem.nms.nbt.NBTManager;
 import utils.DataConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 public abstract class Ability {
 
     private MonoItem plugin = MonoItem.getPlugin(MonoItem.class);
     public static HashMap<String, Ability> abilities = new HashMap<>();
+    public static HashMap<LivingEntity, List<String>> cooldownList = new HashMap<>();
     private File format = new File(plugin.getDataFolder(), "format.yml");
     private FileConfiguration config;
 
     private ItemStack ICON;
     protected String FORMAT;
+    private List<TriggerType> allowedTrigger = new ArrayList<>();
     private String id, displayName;
     private HashMap<AbilityModifier, Double> modifier = new HashMap<>();
     private HashMap<String, Object> customModifier = new HashMap<>();
     protected HashMap<String, Class> customModifierClazz = new HashMap<>();
+    private HashMap<StatsEnum, HashMap<String, Double>> statsModifier = new HashMap<>();
     private TriggerType triggerType = TriggerType.DAMAGE;
-    private boolean isCooldown = false;
 
     public enum TriggerType{
-        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK, PROJECTILE_HIT
+        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK, PROJECTILE_HIT, PROJECTILE_SHOOT, PROJECTILE_HIT_BLOCK
     }
 
     // value type data is double only
@@ -51,7 +52,7 @@ public abstract class Ability {
     }
 
     public enum AbilitySerialize{
-        TRIGGER_TYPE, DEFAULT_MODIFIER, CUSTOM_MODIFIER, LORE;
+        TRIGGER_TYPE, DEFAULT_MODIFIER, CUSTOM_MODIFIER, LORE, STATS_MODIFIER;
     }
 
     public Ability(String id, String display, Material mat){
@@ -120,8 +121,17 @@ public abstract class Ability {
         try {
             NBTManager nbt = factory.getNbtManager();
             nbt.customNbtData(getId() + ".TRIGGER_TYPE", triggerType.name());
+            if (!nbt.hasNbt("MONOITEM")) {
+                nbt.customNbtData("MONOITEM", UUID.randomUUID().toString());
+            }
             factory.getPlaceholder().addReplacer(getId() + ".TRIGGER_TYPE", triggerType.name());
 
+            if (getModifier().containsKey(AbilityModifier.RESULT)){
+                getModifier().remove(AbilityModifier.MINIMUM);
+                getModifier().remove(AbilityModifier.MAXIMUM);
+            }else{
+                initializeResult();
+            }
             for (AbilityModifier mod : getModifier().keySet()) {
                 String path = getId() + "." + mod.name();
                 nbt.customNbtData(path, getModifier().get(mod));
@@ -158,11 +168,14 @@ public abstract class Ability {
 
     public void startCooldown(LivingEntity entity, long cooldown){
         String cdPath = getId() + "." + AbilityModifier.COOLDOWN.name();
-        this.isCooldown = true;
+        List<String> ab = cooldownList.containsKey(entity) ? cooldownList.get(entity) : new ArrayList<>();
+        ab.add(cdPath);
+        cooldownList.put(entity, ab);
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
             @Override
             public void run() {
-                isCooldown = false;
+                ab.remove(cdPath);
+                cooldownList.put(entity, ab);
             }
         }, cooldown);
     }
@@ -216,12 +229,27 @@ public abstract class Ability {
         this.modifier = modifier;
     }
 
+    public void setAllowedTrigger(List<TriggerType> allowedTrigger) {
+        this.allowedTrigger = allowedTrigger;
+    }
+
     public void setCustomModifierClazz(HashMap<String, Class> customModifierClazz) {
         this.customModifierClazz = customModifierClazz;
     }
 
     public void addCustomModifier(String modifier, Class instance){
         getCustomModifierClazz().put(modifier, instance);
+    }
+
+    public void addAllowedTrigger(TriggerType... type) { getAllowedTrigger().addAll(Arrays.asList(type));
+    }
+
+    public void setStatsModifier(HashMap<StatsEnum, HashMap<String, Double>> statsModifier) {
+        this.statsModifier = statsModifier;
+    }
+
+    public void addAllowedTrigger(TriggerType type){
+        getAllowedTrigger().add(type);
     }
 
     // Getter
@@ -256,6 +284,19 @@ public abstract class Ability {
         if (!defaultModifier.isEmpty()){
             map.put(AbilitySerialize.DEFAULT_MODIFIER, defaultModifier);
         }
+        map.put(AbilitySerialize.LORE, nbt.get(getId() + ".LORE"));
+
+        HashMap<StatsEnum, HashMap<String, Double>> smap = new HashMap<>();
+        for (StatsEnum stats : StatsEnum.values()){
+            HashMap<String, Double> value = new HashMap<>();
+            if (nbt.hasNbt(stats.getResult())){
+                value.put(stats.getResult(), factory.getStatsResult(stats));
+            }else if (nbt.hasNbt(stats.getMin()) && nbt.hasNbt(stats.getMax())){
+                value.put(stats.getResult(), factory.getStatsMin(stats));
+                value.put(stats.getResult(), factory.getStatsMax(stats));
+            }
+            smap.put(stats, value);
+        }
 
         return map;
     }
@@ -276,8 +317,12 @@ public abstract class Ability {
         return ICON;
     }
 
-    public boolean isCooldown() {
-        return isCooldown;
+    public boolean isCooldown(LivingEntity entity) {
+        if (cooldownList.isEmpty()){
+            return false;
+        }
+        List<String> list = cooldownList.containsKey(entity) ? cooldownList.get(entity) : new ArrayList<>();
+        return list.contains(getId() + "." + AbilityModifier.COOLDOWN.name());
     }
 
     public TriggerType getTriggerType() {
@@ -304,5 +349,11 @@ public abstract class Ability {
         return customModifierClazz;
     }
 
+    public List<TriggerType> getAllowedTrigger() {
+        return allowedTrigger;
+    }
 
+    public HashMap<StatsEnum, HashMap<String, Double>> getStatsModifier() {
+        return statsModifier;
+    }
 }

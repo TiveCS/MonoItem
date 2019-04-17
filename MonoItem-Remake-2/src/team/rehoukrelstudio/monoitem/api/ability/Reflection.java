@@ -23,6 +23,34 @@ public class Reflection extends Ability {
 
     public Reflection() {
         super("REFLECTION", "Reflection", new ItemStack(Material.GLASS));
+
+        addAllowedTrigger(TriggerType.DAMAGE);
+        addAllowedTrigger(TriggerType.DAMAGE_TAKEN);
+        addAllowedTrigger(TriggerType.SNEAK);
+        addAllowedTrigger(TriggerType.RIGHT_CLICK);
+        addAllowedTrigger(TriggerType.LEFT_CLICK);
+    }
+
+    private void execute(Player p, MonoFactory factory){
+        if (isCooldown(p)) return;
+
+        double chance = factory.getNbtManager().getDouble(this.getId() + "." + AbilityModifier.CHANCE.name());
+        int cooldown = factory.getNbtManager().getInteger(this.getId() + "." + AbilityModifier.COOLDOWN.name());
+        if (getTriggerType().equals(TriggerType.DAMAGE) || getTriggerType().equals(TriggerType.DAMAGE_TAKEN)) {
+            if (chance(chance)) {
+                Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+                    p.setCooldown(p.getInventory().getItemInMainHand().getType(), 0);
+                    p.playSound(p.getLocation(), Sound.ENTITY_FISHING_BOBBER_THROW, 1, 1);
+                    startCooldown(p, cooldown);
+                }, 1L);
+            }
+        }else{
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+                p.setCooldown(p.getInventory().getItemInMainHand().getType(), 0);
+                p.playSound(p.getLocation(), Sound.ENTITY_FISHING_BOBBER_THROW, 1,1);
+                startCooldown(p, cooldown);
+            }, 1L);
+        }
     }
 
     @Override
@@ -44,31 +72,24 @@ public class Reflection extends Ability {
     @Override
     public void entityDamageByEntity(EntityDamageByEntityEvent event, Damageable attacker, Damageable victim, MonoFactory factory) {
         if (getTriggerType().equals(TriggerType.DAMAGE)){
-            if (isCooldown()) return;
-
-            if (attacker instanceof Player){
-                double chance = factory.getNbtManager().getDouble(this.getId() + "." + AbilityModifier.CHANCE.name());
-                int cooldown = factory.getNbtManager().getInteger(this.getId() + "." + AbilityModifier.COOLDOWN.name());
-                if (chance(chance)) {
-                    Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                        Player p = (Player) attacker;
-                        p.setCooldown(p.getInventory().getItemInMainHand().getType(), 0);
-                        p.playSound(p.getLocation(), Sound.ENTITY_FISHING_BOBBER_THROW, 1,1);
-                        startCooldown(p, cooldown);
-                    }, 1L);
-                }
+            if (attacker instanceof Player) {
+                execute((Player) attacker, factory);
+            }
+        }else if (getTriggerType().equals(TriggerType.DAMAGE_TAKEN)){
+            if (victim instanceof Player) {
+                execute((Player) victim, factory);
             }
         }
     }
 
     @Override
     public void playerClick(PlayerInteractEvent event, MonoFactory factory) {
-
+        execute(event.getPlayer(), factory);
     }
 
     @Override
     public void playerSneak(PlayerToggleSneakEvent event, MonoFactory factory) {
-
+        execute(event.getPlayer(), factory);
     }
 
 

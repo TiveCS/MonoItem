@@ -1,0 +1,44 @@
+unidentified-item:
+  settings:
+    vanilla-mob-drop: false
+    mythicmob-drop:
+      enable: true
+      use-prefix: true
+      mob-displayname-prefix: '&7Lv. &c%level% &4' # Use for checking
+  table:
+    Legendary:
+      mob-drop-chance: 0.2
+      multiplier-result: 2.85
+      prefix: '&b'
+      item:
+        display-name: '&bUnidentified Item'
+        lore:
+          - ' '
+          - '&fRarity&8: &bLegendary'
+    Rare:
+      mob-drop-chance: 0.7
+      multiplier-result: 2.25
+      prefix: '&d'
+      item:
+        display-name: '&dUnidentified Item'
+        lore:
+          - ' '
+          - '&fRarity&8: &dRare'
+    Unique:
+      mob-drop-chance: 1.5
+      multiplier-result: 1.5
+      prefix: '&e'
+      item:
+        display-name: '&eUnidentified Item'
+        lore:
+          - ' '
+          - '&fRarity&8: &eUnique'
+    Common:
+      mob-drop-chance: 2
+      multiplier-result: 1.2
+      prefix: '&a'
+      item:
+        display-name: '&aUnidentified Item'
+        lore:
+          - ' '
+          - '&fRarity&8: &aCommon'

@@ -61,7 +61,7 @@ public class OptionsMenu extends MenuManager {
                     state = !factory.getNbtManager().getBoolean(option.getState());
                 }
                 factory.setOptions(option, state);
-                event.getWhoClicked().sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[ State of &f&n" + option.name() + " &7switched to &b&n" + state + " &7]"));
+                event.getWhoClicked().sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[ State of &f&n" + option.name() + " &7switched to &b&n" + state + "&r &7]"));
 
                 fm.getMapCustomObject().put("factory", factory);
                 fm.getMapCustomObject().put("item", factory.getItem());

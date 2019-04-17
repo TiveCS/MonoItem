@@ -10,3 +10,36 @@ base-stats-modifier:
   block_rate: 8
   block_amount: 15
   attack_speed: 36
+
+unidentified-item-name:
+  prefix:
+    default:
+      - 'Warrior'
+      - 'Queen'
+      - 'King'
+      - 'Knight'
+      - 'Magician'
+      - 'Assassin'
+      - 'Archer'
+      - 'Skeletal'
+      - 'Steel'
+      - 'Rock'
+      - 'Silver'
+    Legendary:
+      - 'Olde Dusty'
+      - 'Praetorian'
+      - 'Devil'
+      - 'Black'
+      - 'Widow'
+  suffix:
+    default:
+      - ' Sword'
+      - ' Bow'
+      - ' Axe'
+      - ' Spear'
+      - ' Armor'
+    Legendary:
+      - ' Monsterous Sword'
+      - ' Battle Axe'
+      - ' Wicked Staff'
+      - ' Shadow Longbow'

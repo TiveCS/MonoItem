@@ -17,6 +17,7 @@ public class FactoryMenu extends MenuManager {
     private LoreManagerMenu lm;
     private OptionsMenu om;
     private AbilityMenu ab;
+    private EnchantMenu em;
 
     private final String INSTANCE_KEY = "FACTORY";
 
@@ -41,7 +42,9 @@ public class FactoryMenu extends MenuManager {
         lm = new LoreManagerMenu();
         om = new OptionsMenu();
         ab = new AbilityMenu();
+        em = new EnchantMenu();
 
+        addTwoWayConnectedMenu("ENCHANT", INSTANCE_KEY, em);
         addTwoWayConnectedMenu("ABILITY", INSTANCE_KEY, ab);
         addTwoWayConnectedMenu("OPTIONS", INSTANCE_KEY, om);
         addTwoWayConnectedMenu("LORE_MANAGER", INSTANCE_KEY, lm);
@@ -62,6 +65,9 @@ public class FactoryMenu extends MenuManager {
             event.getWhoClicked().getInventory().addItem(getIconData().get(-1).get(4));
         }
         else if (getPage() == 1){
+            if (event.getSlot() == 16){
+                em.open((Player) event.getWhoClicked());
+            }
             if (event.getSlot() == 15){
                 ab.open((Player) event.getWhoClicked());
             }

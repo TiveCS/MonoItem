@@ -4,17 +4,25 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 
 public class ParticleManager {
 
     private Location location;
     private Plugin plugin;
+    private Entity entity;
     private double offsetX = 0, offsetY = 0, offsetZ = 0;
 
     public ParticleManager(Plugin plugin, Location loc){
         this.location = loc;
         this.plugin = plugin;
+    }
+
+    public ParticleManager(Plugin plugin, Entity entity){
+        this(plugin, entity.getLocation());
+        this.entity = entity;
     }
 
     public ParticleManager(Plugin plugin, Location loc, double offsetX, double offsetY, double offsetZ){
@@ -26,10 +34,20 @@ public class ParticleManager {
     }
 
     public void dotParticle(Particle particle, int amount, Object... obj){
-        getWorld().spawnParticle(particle, getLocation(), amount, offsetX, offsetY, offsetZ, 0, obj);
+        getWorld().spawnParticle(particle, getLocation(), amount, offsetX, offsetY, offsetZ, 0);
     }
 
-    public void circle(Particle particle, double radius, double increment, int tickDelayPerIncrement){
+    public void trails(Particle particle, Entity entity,int particleAmount, long duration, int durationIncrement){
+        for (int i = 0; i < duration; i+=durationIncrement){
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () ->{
+                this.location = entity.getLocation();
+                dotParticle(particle, particleAmount);
+            }, i);
+        }
+    }
+
+    public void circle(Particle particle, double radius, double increment,long duration, int tickDelayPerIncrement){
+        int now = 0;
         for (double degree = 0; degree < 360; degree+=increment){
             double radian = Math.toRadians(degree);
             double dZ = radius*Math.sin(radian), dX = radius*Math.cos(radian);
@@ -37,10 +55,13 @@ public class ParticleManager {
             Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
                 @Override
                 public void run() {
-                    Location nLoc = new Location(getWorld(), x, getLocation().getY(), z);
+                    Location nLoc = new Location(getWorld(), x*dX, getLocation().getY(), z*dZ);
                     dotParticle(particle, 1, nLoc);
                 }
-            }, tickDelayPerIncrement);
+            }, now);
+            if (now < duration){
+                now+= tickDelayPerIncrement;
+            }
         }
     }
 

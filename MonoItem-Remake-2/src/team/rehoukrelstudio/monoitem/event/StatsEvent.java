@@ -8,9 +8,15 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerAnimationType;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
@@ -18,12 +24,36 @@ import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import utils.DataConverter;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StatsEvent implements Listener {
 
     private MonoItem plugin = MonoItem.getPlugin(MonoItem.class);
+
+    public List<ItemStack> getArmor(LivingEntity entity){
+        List<ItemStack> list = new ArrayList<>();
+        for (ItemStack item : entity.getEquipment().getArmorContents()){
+            if (item != null){
+                list.add(item);
+            }
+        }
+        return list;
+    }
+
+    public List<ItemStack> getHandEquipment(LivingEntity entity){
+        EntityEquipment equip = entity.getEquipment();
+        List<ItemStack> list = new ArrayList<>();
+        if (!(equip.getItemInMainHand().getType().equals(Material.AIR))){
+            list.add(equip.getItemInMainHand());
+        }
+
+        if (!(equip.getItemInOffHand().getType().equals(Material.AIR))){
+            list.add(equip.getItemInOffHand());
+        }
+        return list;
+    }
 
     public List<ItemStack> getCompleteEquipment(LivingEntity entity){
         List<ItemStack> items = new ArrayList<ItemStack>();
@@ -50,6 +80,55 @@ public class StatsEvent implements Listener {
     }
 
     @EventHandler
+    public void onSwing(PlayerAnimationEvent event){
+        if (!event.isCancelled()){
+            Player p = event.getPlayer();
+            if (event.getAnimationType().equals(PlayerAnimationType.ARM_SWING)){
+                MonoFactory f = new MonoFactory(p.getInventory().getItemInMainHand());
+                if (f.getNbtManager().hasNbt("MONOITEM")) {
+                    if (p.hasCooldown(p.getInventory().getItemInMainHand().getType())) {
+                        event.setCancelled(true);
+                        return;
+                    } else {
+                        int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
+                        List<ItemStack> map = getCompleteEquipment(p);
+                        for (ItemStack item : map) {
+                            MonoFactory factory = new MonoFactory(item);
+                            if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
+                                cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                            }
+                        }
+                        p.setCooldown(p.getInventory().getItemInMainHand().getType(), cooldown);
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onShoot(EntityShootBowEvent event){
+        if (!event.isCancelled()){
+            if (event.getEntity() instanceof Player) {
+                Player p = (Player) event.getEntity();
+                if (p.hasCooldown(p.getInventory().getItemInMainHand().getType())) {
+                    event.setCancelled(true);
+                    return;
+                } else {
+                    int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
+                    List<ItemStack> map = getCompleteEquipment(p);
+                    for (ItemStack item : map) {
+                        MonoFactory factory = new MonoFactory(item);
+                        if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
+                            cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                        }
+                    }
+                    p.setCooldown(event.getBow().getType(), cooldown);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onDamage(EntityDamageByEntityEvent event){
 
         if (event.isCancelled()){
@@ -65,6 +144,18 @@ public class StatsEvent implements Listener {
         if (event.getEntity() instanceof LivingEntity){
             victim = (LivingEntity) event.getEntity();
         }
+        if (attacker instanceof Player){
+            if (!event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+                Player p = (Player) attacker;
+                if (!(p.getInventory().getItemInMainHand().getType().equals(Material.AIR))) {
+                    if (p.hasCooldown(p.getInventory().getItemInMainHand().getType())) {
+                        event.setDamage(0);
+                        return;
+                    }
+                }
+            }
+        }
+
         List<ItemStack> ai = attacker != null ? getCompleteEquipment(attacker) : new ArrayList<>()
                 , vi = victim != null ? getCompleteEquipment(victim) : new ArrayList<>();
 
@@ -72,13 +163,17 @@ public class StatsEvent implements Listener {
         double critRate = plugin.getConfig().getInt("base-stats-modifier.critical_rate"), critDamage = plugin.getConfig().getInt("base-stats-modifier.critical_damage"),
                 blockRate = plugin.getConfig().getInt("base-stats-modifier.block_rate"), blockAmount = plugin.getConfig().getInt("base-stats-modifier.block_amount");
         double totalDamage = 0, totalDefense = 0;
-        int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
         boolean useMonoItem = false, useMonoItemDefense = false;
         double offhandRemedy = plugin.getConfig().getDouble("settings.offhand-remedy");
 
         if (!event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK)) {
             for (ItemStack item : ai) {
                 MonoFactory factory = new MonoFactory(item);
+                if (factory.getOption(OptionEnum.DISABLE_ON_WATER).equalsIgnoreCase("true")){
+                    if (attacker.getLocation().getBlock().isLiquid()){
+                        continue;
+                    }
+                }
                 if (item.getType().equals(Material.AIR)){
                     continue;
                 }
@@ -111,13 +206,11 @@ public class StatsEvent implements Listener {
                     magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE)*offhandRemedy;
                     critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE)*offhandRemedy;
                     critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE)*offhandRemedy;
-                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED))*offhandRemedy;
                 }else {
                     physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE);
                     magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE);
                     critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE);
                     critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE);
-                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
                 }
             }
 
@@ -149,16 +242,6 @@ public class StatsEvent implements Listener {
                 totalDamage = DataConverter.randomDouble((75 + DataConverter.randomDouble(5, 15)) / 100 * totalDamage, (125 - DataConverter.randomDouble(5, 15)) / 100 * totalDamage);
                 event.setDamage(totalDamage);
                 if (event.getDamage() < 0){event.setDamage(0);}
-                if (attacker instanceof Player){
-                    Player p = (Player) attacker;
-                    if (!(p.getInventory().getItemInMainHand().getType().equals(Material.AIR))) {
-                        if (p.hasCooldown(p.getInventory().getItemInMainHand().getType())){
-                            event.setDamage(0);
-                        }else {
-                            p.setCooldown(p.getInventory().getItemInMainHand().getType(), cooldown >= 0 ? cooldown : 0);
-                        }
-                    }
-                }
             }
 
             if (DataConverter.chance(critRate)) {
