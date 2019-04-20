@@ -52,7 +52,10 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                             p.getInventory().setItemInMainHand(factory.getItem());
                             p.sendMessage("" + stats.name() + " " + min + " > " + max);
                             return true;
-                        }catch(Exception e){return false;}
+                        }catch(Exception e){
+                            e.printStackTrace();
+                            return false;
+                        }
                     }
                 }
                 if (strings.length > 1){

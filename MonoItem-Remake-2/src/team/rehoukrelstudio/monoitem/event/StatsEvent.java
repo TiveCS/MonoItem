@@ -8,11 +8,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
@@ -20,11 +18,11 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
+import team.rehoukrelstudio.monoitem.api.ability.Ability;
 import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import utils.DataConverter;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,10 +90,31 @@ public class StatsEvent implements Listener {
                     } else {
                         int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
                         List<ItemStack> map = getCompleteEquipment(p);
+                        Location eye = p.getEyeLocation();
                         for (ItemStack item : map) {
                             MonoFactory factory = new MonoFactory(item);
+                            if (factory.hasOption(OptionEnum.DISABLE_ON_WATER)){
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_WATER))){
+                                    if (eye.getBlock().isLiquid()) {
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                            }
+                            if (factory.hasOption(OptionEnum.DISABLE_ON_LAND)){
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_LAND))){
+                                    if (!(eye.getBlock().isLiquid())) {
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                            }
                             if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
-                                cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                                if (item.equals(p.getInventory().getItemInOffHand())){
+                                    cooldown += (-1 * Math.round(factory.getStatsResult(StatsEnum.ATTACK_SPEED) / 4));
+                                }else {
+                                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                                }
                             }
                         }
                         p.setCooldown(p.getInventory().getItemInMainHand().getType(), cooldown);
@@ -114,15 +133,38 @@ public class StatsEvent implements Listener {
                     event.setCancelled(true);
                     return;
                 } else {
-                    int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
-                    List<ItemStack> map = getCompleteEquipment(p);
-                    for (ItemStack item : map) {
-                        MonoFactory factory = new MonoFactory(item);
-                        if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
-                            cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                    if (new MonoFactory(event.getBow()).getNbtManager().hasNbt("MONOITEM")) {
+                        int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
+                        List<ItemStack> map = getCompleteEquipment(p);
+                        Location eye = p.getEyeLocation();
+                        for (ItemStack item : map) {
+                            MonoFactory factory = new MonoFactory(item);
+                            if (factory.hasOption(OptionEnum.DISABLE_ON_WATER)) {
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_WATER))) {
+                                    if (eye.getBlock().isLiquid()) {
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                            }
+                            if (factory.hasOption(OptionEnum.DISABLE_ON_LAND)) {
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_LAND))) {
+                                    if (!(eye.getBlock().isLiquid())) {
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                            }
+                            if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
+                                if (item.equals(p.getInventory().getItemInOffHand())) {
+                                    cooldown += (-1 * Math.round(factory.getStatsResult(StatsEnum.ATTACK_SPEED) / 4));
+                                } else {
+                                    cooldown += (-1 * factory.getStatsResult(StatsEnum.ATTACK_SPEED));
+                                }
+                            }
                         }
+                        p.setCooldown(event.getBow().getType(), cooldown);
                     }
-                    p.setCooldown(event.getBow().getType(), cooldown);
                 }
             }
         }
@@ -165,19 +207,24 @@ public class StatsEvent implements Listener {
         double totalDamage = 0, totalDefense = 0;
         boolean useMonoItem = false, useMonoItemDefense = false;
         double offhandRemedy = plugin.getConfig().getDouble("settings.offhand-remedy");
+        double blockPenetration = 0, critResist = 0;
+        double incDamage = 0, decDamage = 0;
+        double dodge = 0;
 
         if (!event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK)) {
             for (ItemStack item : ai) {
                 MonoFactory factory = new MonoFactory(item);
-                if (factory.getOption(OptionEnum.DISABLE_ON_WATER).equalsIgnoreCase("true")){
-                    if (attacker.getLocation().getBlock().isLiquid()){
-                        continue;
-                    }
-                }
                 if (item.getType().equals(Material.AIR)){
                     continue;
                 }
 
+                if (factory.hasOption(OptionEnum.RANGED_ONLY)) {
+                    if (factory.getOption(OptionEnum.RANGED_ONLY).equalsIgnoreCase("true")) {
+                        if (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+                            continue;
+                        }
+                    }
+                }
                 if (factory.getNbtManager().hasNbt(OptionEnum.DISABLE_ON_LAND.getState())){
                     if (factory.getNbtManager().getBoolean(OptionEnum.DISABLE_ON_LAND.getState())){
                         Location loc = attacker.getLocation(), eye = attacker.getEyeLocation();
@@ -202,11 +249,15 @@ public class StatsEvent implements Listener {
                 }
 
                 if (item.equals(attacker.getEquipment().getItemInOffHand())){
+                    incDamage += factory.getStatsResult(StatsEnum.INCREASE_DAMAGE)*offhandRemedy;
                     physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE)*offhandRemedy;
                     magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE)*offhandRemedy;
                     critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE)*offhandRemedy;
                     critDamage += factory.getStatsResult(StatsEnum.CRITICAL_DAMAGE)*offhandRemedy;
+                    blockPenetration += factory.getStatsResult(StatsEnum.BLOCK_PENETRATION)*offhandRemedy;
                 }else {
+                    blockPenetration += factory.getStatsResult(StatsEnum.BLOCK_PENETRATION);
+                    incDamage += factory.getStatsResult(StatsEnum.INCREASE_DAMAGE);
                     physicalDamage += factory.getStatsResult(StatsEnum.PHYSICAL_DAMAGE);
                     magicDamage += factory.getStatsResult(StatsEnum.MAGICAL_DAMAGE);
                     critRate += factory.getStatsResult(StatsEnum.CRITICAL_RATE);
@@ -225,11 +276,17 @@ public class StatsEvent implements Listener {
                     }
                 }
                 if (item.equals(attacker.getEquipment().getItemInOffHand())){
+                    decDamage += factory.getStatsResult(StatsEnum.DECREASE_DAMAGE)*offhandRemedy;
                     physicalArmor += factory.getStatsResult(StatsEnum.PHYSICAL_DEFENSE)*offhandRemedy;
                     magicArmor += factory.getStatsResult(StatsEnum.MAGICAL_DEFENSE)*offhandRemedy;
                     blockAmount += factory.getStatsResult(StatsEnum.BLOCK_AMOUNT)*offhandRemedy;
                     blockRate += factory.getStatsResult(StatsEnum.BLOCK_RATE)*offhandRemedy;
+                    dodge += factory.getStatsResult(StatsEnum.DODGE)*offhandRemedy;
+                    critResist += factory.getStatsResult(StatsEnum.CRITICAL_RESISTANCE)*offhandRemedy;
                 }else {
+                    critResist += factory.getStatsResult(StatsEnum.CRITICAL_RESISTANCE);
+                    decDamage += factory.getStatsResult(StatsEnum.DECREASE_DAMAGE);
+                    dodge += factory.getStatsResult(StatsEnum.DODGE);
                     physicalArmor += factory.getStatsResult(StatsEnum.PHYSICAL_DEFENSE);
                     magicArmor += factory.getStatsResult(StatsEnum.MAGICAL_DEFENSE);
                     blockAmount += factory.getStatsResult(StatsEnum.BLOCK_AMOUNT);
@@ -237,10 +294,26 @@ public class StatsEvent implements Listener {
                 }
             }
 
+            if (Ability.chance(dodge)){
+                event.setDamage(0);
+                event.setCancelled(true);
+                return;
+            }
+
+            critRate -= critResist;
+            blockRate -= blockPenetration;
+            if (critRate < 0){
+                critRate = 0;
+            }
+            if (blockRate < 0){
+                blockRate = 0;
+            }
+
             if (useMonoItem) {
                 totalDamage = physicalDamage + magicDamage;
                 totalDamage = DataConverter.randomDouble((75 + DataConverter.randomDouble(5, 15)) / 100 * totalDamage, (125 - DataConverter.randomDouble(5, 15)) / 100 * totalDamage);
                 event.setDamage(totalDamage);
+                event.setDamage(event.getDamage() + event.getDamage()*incDamage/100);
                 if (event.getDamage() < 0){event.setDamage(0);}
             }
 
@@ -263,6 +336,7 @@ public class StatsEvent implements Listener {
                     event.setDamage(0);
                 } else {
                     event.setDamage(event.getDamage() - totalDefense);
+                    event.setDamage(event.getDamage() - event.getDamage()*decDamage/100);
                 }
             }
 

@@ -135,6 +135,25 @@ public class MessageManager {
             return DefaultFontInfo.DEFAULT;
         }
     }
+
+    public static String getPlaceholderFromText(String placeholder, String raw, String original, String regex){
+        int index = original.indexOf(placeholder), end = -1;
+        boolean unpassed = true;
+        int count = 1;
+        do{
+            try{
+                if (raw.substring(index + (count - 1), index + count).matches(regex)){
+                    end = index + count;
+                    count++;
+                }else {
+                    unpassed = false;
+                }
+            }catch(Exception e){continue;}
+        }while(unpassed);
+        String num = raw.substring(index, end);
+        return num;
+    }
+
     public static void sendCenteredMessage(Player player, String message) {
         message = ChatColor.translateAlternateColorCodes('&', message);
         int messagePxSize = 0;

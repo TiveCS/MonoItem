@@ -1,44 +1,157 @@
+file-version: 1.0
+
+trigger:
+  armor:
+    - SNEAK
+    - DAMAGE_TAKEN
+    - PROJECTILE_HIT
+    - PROJECTILE_SHOOT
+    - PROJECTILE_HIT_BLOCK
+  weapon:
+    - SNEAK
+    - DAMAGE
+    - PROJECTILE_HIT
+    - PROJECTILE_SHOOT
+    - PROJECTILE_HIT_BLOCK
+    - LEFT_CLICK
+    - RIGHT_CLICK
+
+ability-base:
+  weapon:
+    - ARROW_STORM:{cooldown:80=120;amount=5=12;}
+    - REFLECTION:{cooldown:120=140;chance:40=55;}
+    - VORPAL_SLASH:{cooldown:200=350;result:115=135;}
+  armor:
+    - REFLECTION:{cooldown:220=300;chance:20=25;}
+    - IRON_SKIN:{cooldown:160=200;chance:30=60;knockbackpower:1=2.5;result:25=35;}
+    - LEAP:{cooldown:200=250;result=2.5=3;}
+
+stats-base:
+  default:
+    - PHYSICAL_DEFENSE:2.3=3.4
+    - MAGICAL_DEFENSE:1.5=2.9
+    - BLOCK_RATE:5=25
+    - BLOCK_AMOUNT:15=17
+    - DODGE:3=7
+    - CRITICAL_RESISTANCE:5=12
+    - ATTACK_SPEED:-7=7
+    - DECREASE_DAMAGE:10=15
+    - PHSYICAL_DAMAGE:8.75=13.5
+    - MAGICAL_DAMAGE:5.5=12.95
+    - CRITICAL_RATE:5=15
+    - CRITICAL_DAMAGE:10=25
+    - ATTACK_SPEED:1=10
+    - INCREASE_DAMAGE:5=15
+    - BLOCK_PENETRATION:3=7.5
+  weapon:
+    - PHSYICAL_DAMAGE:8.75=13.5
+    - MAGICAL_DAMAGE:5.5=12.95
+    - CRITICAL_RATE:5=15
+    - CRITICAL_DAMAGE:10=25
+    - ATTACK_SPEED:1=10
+    - INCREASE_DAMAGE:5=15
+    - BLOCK_PENETRATION:3=7.5
+  armor:
+    - PHYSICAL_DEFENSE:2.3=3.4
+    - MAGICAL_DEFENSE:1.5=2.9
+    - BLOCK_RATE:5=25
+    - BLOCK_AMOUNT:15=17
+    - DODGE:3=7
+    - CRITICAL_RESISTANCE:5=12
+    - ATTACK_SPEED:-7=7
+    - DECREASE_DAMAGE:10=15
+
 unidentified-item:
   settings:
+    durability:
+      unbreakable: true # Unbreakable as default
+      base: 900 # Durability base will be multiplied by multiplier-result on specify table
+    identifier-level:
+      default: 1
+    use-saved-item: false
     vanilla-mob-drop: false
-    mythicmob-drop:
+    mythicmobs-drop:
       enable: true
       use-prefix: true
       mob-displayname-prefix: '&7Lv. &c%level% &4' # Use for checking
   table:
     Legendary:
-      mob-drop-chance: 0.2
+      mob-drop-chance: 0.052
       multiplier-result: 2.85
       prefix: '&b'
+      durability:
+        unbreakable: true # Force unbreakable
+        base: 7700 # Forcing have base on this value
+      stats:
+        amount:
+          minimum: 3
+          maximum: 5
+      ability:
+        amount:
+          minimum: 1
+          maximum: 3
       item:
         display-name: '&bUnidentified Item'
         lore:
           - ' '
-          - '&fRarity&8: &bLegendary'
+          - '&bLegendary item'
     Rare:
-      mob-drop-chance: 0.7
+      mob-drop-chance: 0.087
       multiplier-result: 2.25
       prefix: '&d'
+      durability:
+        unbreakable: true # Force unbreakable
+        base: 2700 # Forcing have base on this value
+      stats:
+        amount:
+          minimum: 2
+          maximum: 4
+      ability:
+        amount:
+          minimum: 1
+          maximum: 2
       item:
         display-name: '&dUnidentified Item'
         lore:
           - ' '
-          - '&fRarity&8: &dRare'
+          - '&dRare item'
     Unique:
-      mob-drop-chance: 1.5
+      mob-drop-chance: 0.3
       multiplier-result: 1.5
       prefix: '&e'
+      durability:
+        unbreakable: true # Force unbreakable
+        base: 870 # Forcing have base on this value
+      stats:
+        amount:
+          minimum: 1
+          maximum: 3
+      ability:
+        amount:
+          minimum: 0
+          maximum: 1
       item:
         display-name: '&eUnidentified Item'
         lore:
           - ' '
-          - '&fRarity&8: &eUnique'
+          - '&eUnique item'
     Common:
-      mob-drop-chance: 2
+      mob-drop-chance: 1
       multiplier-result: 1.2
       prefix: '&a'
+      durability:
+        unbreakable: false # Force unbreakable
+        base: 597 # Forcing have base on this value
+      stats:
+        amount:
+          minimum: 1
+          maximum: 2
+      ability:
+        amount:
+          minimum: 0
+          maximum: 0
       item:
         display-name: '&aUnidentified Item'
         lore:
           - ' '
-          - '&fRarity&8: &aCommon'
+          - '&aCommon item'

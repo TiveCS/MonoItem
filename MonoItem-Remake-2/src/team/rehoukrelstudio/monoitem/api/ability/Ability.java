@@ -43,7 +43,8 @@ public abstract class Ability {
     private TriggerType triggerType = TriggerType.DAMAGE;
 
     public enum TriggerType{
-        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK, PROJECTILE_HIT, PROJECTILE_SHOOT, PROJECTILE_HIT_BLOCK
+        DAMAGE, DAMAGE_TAKEN, LEFT_CLICK, RIGHT_CLICK, SNEAK, PROJECTILE_HIT, PROJECTILE_SHOOT, PROJECTILE_HIT_BLOCK,
+        JUMP, SWIMMING, SPRINT, TARGETING
     }
 
     // value type data is double only

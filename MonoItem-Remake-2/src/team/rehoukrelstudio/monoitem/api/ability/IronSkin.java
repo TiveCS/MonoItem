@@ -27,10 +27,9 @@ public class IronSkin extends Ability {
         setTriggerType(TriggerType.DAMAGE_TAKEN);
         setModifier(AbilityModifier.COOLDOWN, 100);
         setModifier(AbilityModifier.CHANCE, 25);
-        setModifier(AbilityModifier.MINIMUM, 0.5);
-        setModifier(AbilityModifier.MAXIMUM, 2.25);
+        setModifier(AbilityModifier.MINIMUM, 20.5);
+        setModifier(AbilityModifier.MAXIMUM, 32.25);
         setCustomModifier("knockbackpower", Double.class, 1);
-        setCustomModifier("damagedecrease", Double.class, 32.5);
         initializeResult();
     }
 
@@ -56,7 +55,7 @@ public class IronSkin extends Ability {
                 event.setCancelled(true);
             }else {
                 double knockback = Double.parseDouble(getCustomModifier().get("knockbackpower").toString()),
-                        decrease = Double.parseDouble(getCustomModifier().get("damagedecrease").toString());
+                        decrease = Double.parseDouble(getModifier().get(AbilityModifier.RESULT).toString());
                 event.setDamage(event.getDamage() - event.getDamage() * decrease / 100);
                 attacker.setVelocity(attacker.getLocation().getDirection().multiply(-1 * (knockback)));
             }

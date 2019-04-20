@@ -19,7 +19,11 @@ public class ConfigManager {
 
         if (!this.file.exists()){
             try {
-                this.file.createNewFile();
+                if (file.isDirectory()){
+                    this.file.mkdir();
+                }else {
+                    this.file.createNewFile();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

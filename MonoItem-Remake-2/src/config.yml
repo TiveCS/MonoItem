@@ -1,7 +1,4 @@
 prefix: '&8( &dMonoItem &8)'
-plugin-hook:
-  RPGitems: false
-  HolographicDisplays: false
 settings:
   offhand-remedy: 0.2
 base-stats-modifier:

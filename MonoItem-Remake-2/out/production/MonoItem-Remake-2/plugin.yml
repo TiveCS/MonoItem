@@ -4,6 +4,7 @@ version: 1.0
 author: TiveCS
 main: team.rehoukrelstudio.monoitem.MonoItem
 softdepend:
+  - MythicMobs
   - RPGItems
   - HolographicDisplays
 commands:

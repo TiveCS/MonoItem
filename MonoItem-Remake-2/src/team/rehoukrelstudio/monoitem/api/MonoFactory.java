@@ -1,6 +1,7 @@
 package team.rehoukrelstudio.monoitem.api;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -14,12 +15,22 @@ import utils.DataConverter;
 import utils.language.Placeholder;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class MonoFactory {
+
+    public static List<Material>
+            sword = Arrays.asList(Material.WOODEN_SWORD, Material.IRON_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.DIAMOND_SWORD),
+            axe = Arrays.asList(Material.WOODEN_AXE, Material.STONE_AXE, Material.GOLDEN_AXE, Material.DIAMOND_AXE),
+            shovel = Arrays.asList(Material.WOODEN_SHOVEL, Material.STONE_SHOVEL, Material.GOLDEN_SHOVEL, Material.IRON_SHOVEL, Material.DIAMOND_SHOVEL),
+            hoe = Arrays.asList(Material.WOODEN_HOE, Material.STONE_HOE, Material.GOLDEN_HOE, Material.IRON_HOE, Material.DIAMOND_HOE),
+            pickaxe = Arrays.asList(Material.WOODEN_PICKAXE, Material.STONE_PICKAXE, Material.GOLDEN_PICKAXE, Material.IRON_PICKAXE, Material.DIAMOND_PICKAXE),
+
+            helmet = Arrays.asList(Material.LEATHER_HELMET, Material.CHAINMAIL_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET),
+            chestplate = Arrays.asList(Material.LEATHER_CHESTPLATE, Material.CHAINMAIL_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE),
+            leggings = Arrays.asList(Material.LEATHER_LEGGINGS, Material.CHAINMAIL_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS),
+            boots = Arrays.asList(Material.LEATHER_BOOTS, Material.CHAINMAIL_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS);
+
 
     private MonoItem plugin = MonoItem.getPlugin(MonoItem.class);
     private File formatFile = new File(plugin.getDataFolder(), "format.yml");
@@ -150,19 +161,20 @@ public class MonoFactory {
         }
     }
 
-    public void generateUnidentified(){
+    public UnidentifiedItem generateUnidentified(){
         if (!hasOption(OptionEnum.UNIDENTIFIED)){
-            return;
+            return null;
         }
         String rarity = getOption(OptionEnum.UNIDENTIFIED);
-        List<String> lore = MonoItem.unidentConfigManager.getConfig().getStringList("unidentified-item.table." + rarity + ".item.lore");
+        getMeta().setLore(new ArrayList<>());
         String prefix = ChatColor.translateAlternateColorCodes('&', MonoItem.unidentConfigManager.getConfig().getString("unidentified-item.table." + rarity + ".prefix"));
         List<String> l = getMeta().getLore(),
             pf = plugin.getConfig().contains("unidentified-item-name." + rarity) ? plugin.getConfig().getStringList("unidentified-item-name.prefix." + rarity) : plugin.getConfig().getStringList("unidentified-item-name.prefix.default")
                 , sf = plugin.getConfig().contains("unidentified-item-name." + rarity) ? plugin.getConfig().getStringList("unidentified-item-name.suffix." + rarity) : plugin.getConfig().getStringList("unidentified-item-name.suffix.default");
-        l.removeAll(lore);
         getMeta().setLore(l);
-        getMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', prefix + pf.get(new Random().nextInt(pf.size() - 1)) + sf.get(new Random().nextInt(sf.size() - 1))));
+        String pref = pf.get(new Random().nextInt(pf.size() - 1)), suf = sf.get(new Random().nextInt(sf.size() - 1));
+
+        getMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', prefix + pref + suf));
         getItem().setItemMeta(getMeta());
 
         for (StatsEnum st : StatsEnum.values()){
@@ -171,11 +183,12 @@ public class MonoFactory {
                 setStats(st, min, max, false, rarity);
             }
         }
+
+        return new UnidentifiedItem(this, MonoItem.unidentConfigManager.getConfig().getInt("unidentified-item.settings.identifier-level.default"), rarity);
     }
 
     public void removeLore(int line){
         List<String> list = getMeta().hasLore() ? getMeta().getLore() : new ArrayList<>();
-        System.out.println(line + " " + list.size());
         if (!list.isEmpty() && (list.get(line) != null || list.size() - 1 >= line)){
             list.remove(line);
         }
@@ -287,4 +300,58 @@ public class MonoFactory {
         return nbtManager;
     }
 
+    public List<Material> getSword() {
+        return sword;
+    }
+
+    public List<Material> getAxe() {
+        return axe;
+    }
+
+    public List<Material> getShovel() {
+        return shovel;
+    }
+
+    public List<Material> getPickaxe() {
+        return pickaxe;
+    }
+
+    public List<Material> getHoe() {
+        return hoe;
+    }
+
+    public List<Material> getBoots() {
+        return boots;
+    }
+
+    public List<Material> getChestplate() {
+        return chestplate;
+    }
+
+    public List<Material> getLeggings() {
+        return leggings;
+    }
+
+    public List<Material> getHelmet() {
+        return helmet;
+    }
+
+    public static List<Material> getWeapon(){
+        List<Material> list = new ArrayList<>();
+        list.addAll(sword);
+        list.addAll(hoe);
+        list.addAll(shovel);
+        list.addAll(axe);
+        list.addAll(pickaxe);
+        return list;
+    }
+
+    public static List<Material> getArmor(){
+        List<Material> list = new ArrayList<>();
+        list.addAll(helmet);
+        list.addAll(boots);
+        list.addAll(chestplate);
+        list.addAll(leggings);
+        return list;
+    }
 }
