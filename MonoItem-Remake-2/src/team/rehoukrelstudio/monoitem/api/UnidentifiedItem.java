@@ -1,10 +1,10 @@
 package team.rehoukrelstudio.monoitem.api;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
+import utils.DataConverter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ public class UnidentifiedItem {
         this.level = level;
         this.rarity = rarity;
         this.rarityPath = "unidentified-item.table." + rarity;
-        if (!MonoItem.unidentConfigManager.getConfig().contains(rarityPath)){
+        if (!MonoItem.unidentConfigManager.getConfig().contains(getRarityPath())){
             return;
         }
         this.multiplier = MonoItem.unidentConfigManager.getConfig().getDouble(this.rarityPath + ".multiplier-result");
@@ -42,20 +42,21 @@ public class UnidentifiedItem {
         }else{
             this.type = "default";
         }
+        factory.setUnidentified(true, getRarity());
         generateStats();
     }
 
-    public UnidentifiedItem(Material mat, int level, String rarity){
-        this(new MonoFactory(new ItemStack(mat)), level, rarity);
+    public UnidentifiedItem(ItemStack item, int level, String rarity){
+        this(new MonoFactory(item), level, rarity);
     }
 
     // Action
 
     public void generateStats(){
         int sMin , sMax, amount;
-        sMin = MonoItem.unidentConfigManager.getConfig().getInt(getRarityPath() + ".amount.minimum");
-        sMax = MonoItem.unidentConfigManager.getConfig().getInt(getRarityPath() + ".amount.maximum");
-        amount = new Random().nextInt(sMax);
+        sMin = MonoItem.unidentConfigManager.getConfig().getInt(getRarityPath() + ".stats.amount.minimum");
+        sMax = MonoItem.unidentConfigManager.getConfig().getInt(getRarityPath() + ".stats.amount.maximum");
+        amount = new Random().nextInt(sMax + 1);
         if (amount < sMin){
             amount = sMin;
         }
@@ -69,12 +70,27 @@ public class UnidentifiedItem {
             }
         }
 
+        String formula = MonoItem.unidentConfigManager.getConfig().getString("unidentified-item.settings.result-formula");
         for (StatsEnum e : getStats().keySet()){
             String[] sp = getStats().get(e).split("=");
-            double min = Double.parseDouble(sp[0])*(getMultiplier()*getLevel()),
-                    max = Double.parseDouble(sp[1])*(getMultiplier()*getLevel());
+            String fMin = formula, fMax = formula;
+            double min = Double.parseDouble(sp[0]),
+                    max = Double.parseDouble(sp[1]);
+
+            fMin = fMin.replace("%level%", level + "");
+            fMin = fMin.replace("%multiplier%", getMultiplier() + "");
+            fMin = fMin.replace("%result%", min + "");
+
+            fMax = fMax.replace("%level%", level + "");
+            fMax = fMax.replace("%multiplier%", getMultiplier() + "");
+            fMax = fMax.replace("%result%", max + "");
+
+            min = DataConverter.convertStringToDouble(fMin);
+            max = DataConverter.convertStringToDouble(fMax);
+
             getFactory().setStats(e, min, max, true);
         }
+
     }
 
     // Setter getter

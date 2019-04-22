@@ -1,9 +1,6 @@
 package team.rehoukrelstudio.monoitem.event;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -93,8 +90,12 @@ public class StatsEvent implements Listener {
                         Location eye = p.getEyeLocation();
                         for (ItemStack item : map) {
                             MonoFactory factory = new MonoFactory(item);
+                            if (factory.hasOption(OptionEnum.UNIDENTIFIED)){
+                                event.setCancelled(true);
+                                return;
+                            }
                             if (factory.hasOption(OptionEnum.DISABLE_ON_WATER)){
-                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_WATER))){
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_WATER).toString())){
                                     if (eye.getBlock().isLiquid()) {
                                         event.setCancelled(true);
                                         return;
@@ -102,7 +103,7 @@ public class StatsEvent implements Listener {
                                 }
                             }
                             if (factory.hasOption(OptionEnum.DISABLE_ON_LAND)){
-                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_LAND))){
+                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_LAND).toString())){
                                     if (!(eye.getBlock().isLiquid())) {
                                         event.setCancelled(true);
                                         return;
@@ -133,28 +134,36 @@ public class StatsEvent implements Listener {
                     event.setCancelled(true);
                     return;
                 } else {
-                    if (new MonoFactory(event.getBow()).getNbtManager().hasNbt("MONOITEM")) {
+                    Location eye = p.getEyeLocation();
+                    MonoFactory f = new MonoFactory(event.getBow());
+                    if (f.getNbtManager().hasNbt("MONOITEM")) {
+                        if (f.hasOption(OptionEnum.UNIDENTIFIED)){
+                            event.setCancelled(true);
+                            return;
+                        }
+                        if (f.hasOption(OptionEnum.DISABLE_ON_WATER)){
+                            event.getEntity().sendMessage(" " + f.getOption(OptionEnum.DISABLE_ON_LAND));
+                            if (Boolean.parseBoolean(f.getOption(OptionEnum.DISABLE_ON_LAND).toString())) {
+                                if (eye.getBlock().isLiquid()) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                            }
+                        }
+                        if (f.hasOption(OptionEnum.DISABLE_ON_LAND)) {
+                            if (Boolean.parseBoolean(f.getOption(OptionEnum.DISABLE_ON_LAND).toString())) {
+                                if (!(eye.getBlock().isLiquid())) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                            }
+                        }
+
                         int cooldown = plugin.getConfig().getInt("base-stats-modifier.attack_speed");
                         List<ItemStack> map = getCompleteEquipment(p);
-                        Location eye = p.getEyeLocation();
+
                         for (ItemStack item : map) {
                             MonoFactory factory = new MonoFactory(item);
-                            if (factory.hasOption(OptionEnum.DISABLE_ON_WATER)) {
-                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_WATER))) {
-                                    if (eye.getBlock().isLiquid()) {
-                                        event.setCancelled(true);
-                                        return;
-                                    }
-                                }
-                            }
-                            if (factory.hasOption(OptionEnum.DISABLE_ON_LAND)) {
-                                if (Boolean.parseBoolean(factory.getOption(OptionEnum.DISABLE_ON_LAND))) {
-                                    if (!(eye.getBlock().isLiquid())) {
-                                        event.setCancelled(true);
-                                        return;
-                                    }
-                                }
-                            }
                             if (factory.hasStats(StatsEnum.ATTACK_SPEED)) {
                                 if (item.equals(p.getInventory().getItemInOffHand())) {
                                     cooldown += (-1 * Math.round(factory.getStatsResult(StatsEnum.ATTACK_SPEED) / 4));
@@ -217,9 +226,13 @@ public class StatsEvent implements Listener {
                 if (item.getType().equals(Material.AIR)){
                     continue;
                 }
+                if (factory.hasOption(OptionEnum.UNIDENTIFIED)){
+                    event.setCancelled(true);
+                    return;
+                }
 
                 if (factory.hasOption(OptionEnum.RANGED_ONLY)) {
-                    if (factory.getOption(OptionEnum.RANGED_ONLY).equalsIgnoreCase("true")) {
+                    if (factory.getOption(OptionEnum.RANGED_ONLY).toString().equalsIgnoreCase("true")) {
                         if (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
                             continue;
                         }
@@ -270,6 +283,9 @@ public class StatsEvent implements Listener {
                     continue;
                 }
                 MonoFactory factory = new MonoFactory(item);
+                if (factory.hasOption(OptionEnum.UNIDENTIFIED)){
+                    continue;
+                }
                 if (useMonoItemDefense == false) {
                     if (factory.hasStats(StatsEnum.PHYSICAL_DEFENSE) || factory.hasStats(StatsEnum.MAGICAL_DEFENSE)) {
                         useMonoItemDefense = true;

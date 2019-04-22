@@ -1,7 +1,11 @@
 package team.rehoukrelstudio.monoitem;
 
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import team.rehoukrelstudio.monoitem.api.ability.*;
+import team.rehoukrelstudio.monoitem.cmd.CmdIdentify;
 import team.rehoukrelstudio.monoitem.cmd.CmdMonoItem;
 import team.rehoukrelstudio.monoitem.event.AbilityEvent;
 import team.rehoukrelstudio.monoitem.event.MenuEvent;
@@ -17,9 +21,12 @@ import java.util.List;
 public class MonoItem extends JavaPlugin {
 
     private NMSManager nmsManager = new NMSManager();
-    public static ConfigManager unidentConfigManager, savedItemDirectory;
+    public File formatFile = new File(getDataFolder(), "format.yml");
+    public static ConfigManager unidentConfigManager;
     public static List<String> softdependency = new ArrayList<>();
     File unident = new File(this.getDataFolder(), "unidentified-item.yml");
+
+    public static Economy economy;
 
     @Override
     public void onEnable() {
@@ -48,7 +55,7 @@ public class MonoItem extends JavaPlugin {
         saveConfig();
     }
 
-    private void loadConfig() {
+    public void loadConfig() {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
@@ -56,8 +63,32 @@ public class MonoItem extends JavaPlugin {
             saveResource("unidentified-item.yml", false);
         }
         unidentConfigManager = new ConfigManager(this, unident);
-        savedItemDirectory = new ConfigManager(this, new File(this.getDataFolder() + "/Saved Item"));
 
+        File folder = new File(this.getDataFolder(), "Saved Item");
+        if (!folder.exists()){
+            folder.mkdir();
+        }
+        if (!formatFile.exists()){
+            saveResource("format.yml", false);
+        }
+
+        for (CmdIdentify.IdentifyPrice p : CmdIdentify.IdentifyPrice.values()){
+            CmdIdentify.price.put(p.name(), MonoItem.unidentConfigManager.getConfig().getDouble(p.getPath()));
+        }
+
+    }
+
+    private boolean setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
     }
 
     private void loadEvents() {
@@ -71,11 +102,14 @@ public class MonoItem extends JavaPlugin {
     }
 
     private void loadCommands() {
+        if (setupEconomy()) {
+            getCommand("identify").setExecutor(new CmdIdentify());
+        }
         getCommand("monoitem").setExecutor(new CmdMonoItem());
         getCommand("monoitem").setTabCompleter(new CmdMonoItem());
     }
 
-    private void loadAbilities(){
+    public void loadAbilities(){
         Ability.registerAbility(new Reflection(), new IronSkin(), new Leap(), new VorpalSlash(), new ArrowStorm()
         ,new TeleportDamage());
     }

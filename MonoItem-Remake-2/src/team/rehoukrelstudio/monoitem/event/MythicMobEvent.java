@@ -5,13 +5,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
 import team.rehoukrelstudio.monoitem.api.UnidentifiedItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import static utils.MessageManager.getPlaceholderFromText;
@@ -24,23 +28,24 @@ public class MythicMobEvent implements Listener {
 
     @EventHandler
     public void onDeath(MythicMobDeathEvent event){
+
         Entity e = event.getEntity();
+        
         if (event.getKiller() == null){
             return;
         }
-        if (!event.getKiller().getName().equalsIgnoreCase("TiveCS")){
-            return;
-        }
+
         if (enabled){
-            event.getKiller().sendMessage("Checked");
+
             int level = 1;
             String rarity = "";
             UnidentifiedItem unidentifiedItem = null;
-            for (String r : MonoItem.unidentConfigManager.getConfig().getConfigurationSection("unidentified-item.table").getKeys(false)){
+            List<String> rr = new ArrayList<>(MonoItem.unidentConfigManager.getConfig().getConfigurationSection("unidentified-item.table").getKeys(false));
+            for (int i = rr.size() - 1; i > 0;i++){
+                String r = rr.get(i);
                 String path = "unidentified-item.table." + r + ".mob-drop-chance";
                 if (Ability.chance(MonoItem.unidentConfigManager.getConfig().getDouble(path))){
                     rarity = r;
-                    break;
                 }
             }
 
@@ -56,18 +61,24 @@ public class MythicMobEvent implements Listener {
                 }
             }
 
-            int s = new Random().nextInt(1);
+            int s = new Random().nextInt(2);
             Material mat;
-            if (s == 1){
+            if (s >= 1){
                 mat = MonoFactory.getWeapon().get(new Random().nextInt(MonoFactory.getWeapon().size() - 1));
             }else{
                 mat = MonoFactory.getArmor().get(new Random().nextInt(MonoFactory.getArmor().size() - 1));
             }
 
-            unidentifiedItem = new UnidentifiedItem(mat, level, rarity);
-            unidentifiedItem.generateStats();
-            event.getDrops().add(unidentifiedItem.getFactory().getItem());
-            Bukkit.getPlayer("TiveCS").sendMessage(unidentifiedItem.getFactory().getItem().toString());
+            if (event.getKiller().getName().equalsIgnoreCase("TiveCS")){
+                Bukkit.getPlayer("TiveCS").sendMessage(event.getKiller().getName() + " Get item " + rarity );
+                return;
+            }
+
+            ItemStack item = new ItemStack(mat);
+            unidentifiedItem = new UnidentifiedItem(item, level, rarity);
+            Item it = e.getWorld().dropItemNaturally(e.getLocation(), unidentifiedItem.getFactory().getItem());
+            it.setGlowing(true);
+
         }
     }
 

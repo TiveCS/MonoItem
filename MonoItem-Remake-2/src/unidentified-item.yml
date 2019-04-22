@@ -28,46 +28,52 @@ ability-base:
 
 stats-base:
   default:
-    - PHYSICAL_DEFENSE:2.3=3.4
-    - MAGICAL_DEFENSE:1.5=2.9
-    - BLOCK_RATE:5=25
-    - BLOCK_AMOUNT:15=17
-    - DODGE:3=7
-    - CRITICAL_RESISTANCE:5=12
-    - ATTACK_SPEED:-7=7
+    - PHYSICAL_DEFENSE:0.3=1.7
+    - MAGICAL_DEFENSE:0.1=1
+    - BLOCK_RATE:0.2=2
+    - BLOCK_AMOUNT:0.5=5
+    - DODGE:0.37=1.1
+    - CRITICAL_RESISTANCE:0.12=3
+    - ATTACK_SPEED:-12=12
     - DECREASE_DAMAGE:10=15
     - PHSYICAL_DAMAGE:8.75=13.5
-    - MAGICAL_DAMAGE:5.5=12.95
-    - CRITICAL_RATE:5=15
-    - CRITICAL_DAMAGE:10=25
-    - ATTACK_SPEED:1=10
-    - INCREASE_DAMAGE:5=15
-    - BLOCK_PENETRATION:3=7.5
+    - MAGICAL_DAMAGE:1.5=2.95
+    - CRITICAL_RATE:0.7=1.07
+    - CRITICAL_DAMAGE:1=4
+    - INCREASE_DAMAGE:2=2.5
+    - BLOCK_PENETRATION:0.12=3
   weapon:
-    - PHSYICAL_DAMAGE:8.75=13.5
-    - MAGICAL_DAMAGE:5.5=12.95
-    - CRITICAL_RATE:5=15
-    - CRITICAL_DAMAGE:10=25
-    - ATTACK_SPEED:1=10
-    - INCREASE_DAMAGE:5=15
-    - BLOCK_PENETRATION:3=7.5
+    - PHYSICAL_DAMAGE:1.1=2.1
+    - MAGICAL_DAMAGE:0.6=1.2
+    - CRITICAL_RATE:0.7=1.07
+    - CRITICAL_DAMAGE:1=4
+    - INCREASE_DAMAGE:2=2.5
+    - BLOCK_PENETRATION:0.12=3
+    - ATTACK_SPEED:-12=12
   armor:
-    - PHYSICAL_DEFENSE:2.3=3.4
-    - MAGICAL_DEFENSE:1.5=2.9
-    - BLOCK_RATE:5=25
-    - BLOCK_AMOUNT:15=17
-    - DODGE:3=7
-    - CRITICAL_RESISTANCE:5=12
-    - ATTACK_SPEED:-7=7
-    - DECREASE_DAMAGE:10=15
+    - PHYSICAL_DEFENSE:0.1=0.74
+    - MAGICAL_DEFENSE:0.1=0.74
+    - BLOCK_RATE:0.2=2
+    - BLOCK_AMOUNT:0.5=5
+    - DODGE:0.37=1.1
+    - CRITICAL_RESISTANCE:0.12=3
+    - ATTACK_SPEED:-12=12
+    - INCREASE_DAMAGE:2=2.5
+    - BLOCK_PENETRATION:0.12=3
 
 unidentified-item:
   settings:
+    result-formula: '%result%*(%multiplier%*%level%/(%multiplier%*1/3))'
     durability:
       unbreakable: true # Unbreakable as default
       base: 900 # Durability base will be multiplied by multiplier-result on specify table
     identifier-level:
       default: 1
+    identify-price:
+      multiply-price-per-level: true
+      money: 1000
+      xp: 0
+      xp_level: 0
     use-saved-item: false
     vanilla-mob-drop: false
     mythicmobs-drop:
@@ -76,8 +82,9 @@ unidentified-item:
       mob-displayname-prefix: '&7Lv. &c%level% &4' # Use for checking
   table:
     Legendary:
-      mob-drop-chance: 0.052
+      mob-drop-chance: 0.01
       multiplier-result: 2.85
+      identify-price-multiplier: 3
       prefix: '&b'
       durability:
         unbreakable: true # Force unbreakable
@@ -98,6 +105,7 @@ unidentified-item:
     Rare:
       mob-drop-chance: 0.087
       multiplier-result: 2.25
+      identify-price-multiplier: 2
       prefix: '&d'
       durability:
         unbreakable: true # Force unbreakable
@@ -118,6 +126,7 @@ unidentified-item:
     Unique:
       mob-drop-chance: 0.3
       multiplier-result: 1.5
+      identify-price-multiplier: 1.25
       prefix: '&e'
       durability:
         unbreakable: true # Force unbreakable
@@ -138,6 +147,7 @@ unidentified-item:
     Common:
       mob-drop-chance: 1
       multiplier-result: 1.2
+      identify-price-multiplier: 1
       prefix: '&a'
       durability:
         unbreakable: false # Force unbreakable

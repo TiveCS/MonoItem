@@ -1,5 +1,6 @@
 package team.rehoukrelstudio.monoitem.api;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -9,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
 import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.Requirement;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import team.rehoukrelstudio.monoitem.nms.nbt.NBTManager;
 import utils.DataConverter;
@@ -90,10 +92,10 @@ public class MonoFactory {
         setItem(getNbtManager().getItem());
         setMeta(getItem().getItemMeta());
         if (unidentified == false) {
+
             setLore(getFormatConfig().getString("stats." + stats.name().toLowerCase()), getPlaceholder(), lineLore);
             setItem(getNbtManager().getItem());
             setMeta(getItem().getItemMeta());
-            System.out.println(this.getItem());
         }else{
             setUnidentified(true, rarity);
         }
@@ -129,23 +131,31 @@ public class MonoFactory {
             return;
         }
         NBTManager nbt = getNbtManager();
+        HashMap<Integer, StatsEnum> ln = new HashMap<>();
+        int size = ln.size();
         if (status) {
             for (StatsEnum e : StatsEnum.values()) {
                 if (nbt.hasNbt(e.getLore())) {
-                    removeLore(nbt.getInteger(e.getLore()));
-                    nbt.deleteCustomNbtData(e.getLore());
-                    if (nbt.hasNbt(e.getMin()) && nbt.hasNbt(e.getMax())) {
-                        nbt.deleteCustomNbtData(e.getResult());
-                    } else if (nbt.hasNbt(e.getResult())) {
-                        nbt.deleteCustomNbtData(e.getMin());
-                        nbt.deleteCustomNbtData(e.getMax());
-                    } else {
-                        nbt.deleteCustomNbtData(e.getMax());
-                        nbt.deleteCustomNbtData(e.getMin());
-                        nbt.deleteCustomNbtData(e.getResult());
-                    }
+                    ln.put(nbt.getInteger(e.getLore()), e);
                 }
             }
+            for (int i = ln.size() - 1; size > 0; i--){
+                StatsEnum e = ln.get(i);
+                removeLore(i);
+                nbt.deleteCustomNbtData(e.getLore());
+                if (nbt.hasNbt(e.getMin()) && nbt.hasNbt(e.getMax())) {
+                    nbt.deleteCustomNbtData(e.getResult());
+                } else if (nbt.hasNbt(e.getResult())) {
+                    nbt.deleteCustomNbtData(e.getMin());
+                    nbt.deleteCustomNbtData(e.getMax());
+                } else {
+                    nbt.deleteCustomNbtData(e.getMax());
+                    nbt.deleteCustomNbtData(e.getMin());
+                    nbt.deleteCustomNbtData(e.getResult());
+                }
+                size--;
+            }
+
             nbt.customNbtData(OptionEnum.UNIDENTIFIED.getState(), rarity);
             List<String> lore = DataConverter.colored(MonoItem.unidentConfigManager.getConfig().getStringList(path + ".item.lore"));
             String displayName = ChatColor.translateAlternateColorCodes('&', MonoItem.unidentConfigManager.getConfig().getString(path + ".item.display-name"));
@@ -155,36 +165,54 @@ public class MonoFactory {
             getMeta().setLore(lore);
             getItem().setItemMeta(getMeta());
         }else{
-            nbt.deleteCustomNbtData(OptionEnum.UNIDENTIFIED.getState());
+            deleteOption(OptionEnum.UNIDENTIFIED);
             setItem(getNbtManager().getItem());
             setMeta(getItem().getItemMeta());
         }
     }
 
-    public UnidentifiedItem generateUnidentified(){
+    public void generateUnidentified(){
         if (!hasOption(OptionEnum.UNIDENTIFIED)){
-            return null;
+            return;
         }
-        String rarity = getOption(OptionEnum.UNIDENTIFIED);
+        String rarity = getOption(OptionEnum.UNIDENTIFIED).toString();
         getMeta().setLore(new ArrayList<>());
         String prefix = ChatColor.translateAlternateColorCodes('&', MonoItem.unidentConfigManager.getConfig().getString("unidentified-item.table." + rarity + ".prefix"));
         List<String> l = getMeta().getLore(),
             pf = plugin.getConfig().contains("unidentified-item-name." + rarity) ? plugin.getConfig().getStringList("unidentified-item-name.prefix." + rarity) : plugin.getConfig().getStringList("unidentified-item-name.prefix.default")
                 , sf = plugin.getConfig().contains("unidentified-item-name." + rarity) ? plugin.getConfig().getStringList("unidentified-item-name.suffix." + rarity) : plugin.getConfig().getStringList("unidentified-item-name.suffix.default");
         getMeta().setLore(l);
-        String pref = pf.get(new Random().nextInt(pf.size() - 1)), suf = sf.get(new Random().nextInt(sf.size() - 1));
+        String pref = pf.get(new Random().nextInt(pf.size())), suf = sf.get(new Random().nextInt(sf.size()));
 
-        getMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', prefix + pref + suf));
-        getItem().setItemMeta(getMeta());
-
-        for (StatsEnum st : StatsEnum.values()){
-            double min = getStatsMin(st), max = getStatsMax(st);
-            if (min != 0 && max != 0) {
-                setStats(st, min, max, false, rarity);
+        String end = getItem().getType().name().substring(getItem().getType().name().indexOf("_") + 1);
+        for (String s : sf){
+            if (s.toUpperCase().contains(end)){
+                suf = s;
+                break;
             }
         }
 
-        return new UnidentifiedItem(this, MonoItem.unidentConfigManager.getConfig().getInt("unidentified-item.settings.identifier-level.default"), rarity);
+        getMeta().setDisplayName(ChatColor.translateAlternateColorCodes('&', prefix + pref + suf));
+        getItem().setItemMeta(getMeta());
+        getNbtManager().setItem(getItem());
+
+        for (StatsEnum st : StatsEnum.values()) {
+            double min = getStatsMin(st), max = getStatsMax(st);
+            if (hasStats(st)) {
+                if (min != 0 && max != 0) {
+                    setStats(st, min, max, false, rarity);
+                }else{
+                    deleteStats(st);
+                }
+            }
+        }
+        deleteOption(OptionEnum.UNIDENTIFIED);
+    }
+
+    public void setRequirement(Requirement req, double value){
+        getNbtManager().customNbtData(req.getValue(), value);
+        setItem(getNbtManager().getItem());
+        setMeta(getItem().getItemMeta());
     }
 
     public void removeLore(int line){
@@ -227,6 +255,14 @@ public class MonoFactory {
         return getItem();
     }
 
+    public double getRequirementValue(Requirement req){
+        return getNbtManager().getDouble(req.getValue());
+    }
+
+    public boolean hasRequirement(Requirement req){
+        return getNbtManager().hasNbt(req.getValue());
+    }
+
     public void setItem(ItemStack item) {
         this.item = item;
     }
@@ -238,12 +274,24 @@ public class MonoFactory {
     public boolean hasOption(OptionEnum option){
         return getNbtManager().hasNbt(option.getState());
     }
+    public void deleteOption(OptionEnum option){
+        getNbtManager().deleteCustomNbtData(option.getState());
+        getNbtManager().deleteCustomNbtData(option.name());
+        setItem(getNbtManager().getItem());
+        setMeta(getItem().getItemMeta());
+    }
 
-    public String getOption(OptionEnum option){
+    public Object getOption(OptionEnum option){
         if (hasOption(option)){
-            return getNbtManager().getString(option.getState());
+            String s = getNbtManager().getString(option.getState());
+            if (s.length() == 0){
+                try{
+                    return getNbtManager().getBoolean(option.getState());
+                }catch(Exception e){return null;}
+            }
+            return s;
         }
-        return "";
+        return null;
     }
 
     public void deleteStats(StatsEnum stats){

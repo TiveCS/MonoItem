@@ -9,11 +9,13 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.MonoFactory;
+import team.rehoukrelstudio.monoitem.api.UnidentifiedItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
 import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import team.rehoukrelstudio.monoitem.menu.AbilityMenu;
 import team.rehoukrelstudio.monoitem.menu.FactoryMenu;
+import team.rehoukrelstudio.monoitem.nms.nbt.NBTManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,16 +23,34 @@ import java.util.List;
 import java.util.Set;
 
 public class CmdMonoItem implements CommandExecutor, TabCompleter {
+
+    MonoItem plugin = MonoItem.getPlugin(MonoItem.class);
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (command.getName().equalsIgnoreCase("monoitem")){
             if (commandSender instanceof Player){
                 Player p = (Player) commandSender;
                 if (strings.length == 1){
+                    if (strings[0].equalsIgnoreCase("check")){
+                        MonoFactory factory = new MonoFactory(p.getInventory().getItemInMainHand());
+                        for (StatsEnum e : StatsEnum.values()){
+                            if (factory.hasStats(e)){
+                                p.sendMessage(e.name() + " " + factory.getStatsMax(e) + " " + factory.getStatsMin(e) + " " + factory.getStatsResult(e));
+                            }
+                        }
+                        return true;
+                    }
                     if (strings[0].equalsIgnoreCase("identify")){
                         MonoFactory factory = new MonoFactory(p.getInventory().getItemInMainHand());
+                        String rarity = "Common";
                         factory.generateUnidentified();
                         p.getInventory().setItemInMainHand(factory.getItem());
+                        return true;
+                    }
+                    if (strings[0].equalsIgnoreCase("reload")){
+                        plugin.loadConfig();
+                        plugin.loadAbilities();
                         return true;
                     }
                     if (strings[0].equalsIgnoreCase("edit")){
@@ -64,6 +84,7 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                             boolean stat = Boolean.parseBoolean(strings[2]);
                             OptionEnum opt = OptionEnum.valueOf(strings[1].toUpperCase());
                             MonoFactory factory = new MonoFactory(p.getInventory().getItemInMainHand());
+                            NBTManager nbt = factory.getNbtManager();
                             if (opt.equals(OptionEnum.UNIDENTIFIED)){
                                 factory.setUnidentified(stat, strings[3]);
                             }else {

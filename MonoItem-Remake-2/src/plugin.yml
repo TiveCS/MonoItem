@@ -4,10 +4,14 @@ version: 1.0
 author: TiveCS
 main: team.rehoukrelstudio.monoitem.MonoItem
 softdepend:
+  - Vault
   - MythicMobs
   - RPGItems
   - HolographicDisplays
 commands:
+    identify:
+      description: Identify item on hand
+      aliases: [appraise]
     monoitem:
       permission: monoitem.command
       description: monoitem editor main command
