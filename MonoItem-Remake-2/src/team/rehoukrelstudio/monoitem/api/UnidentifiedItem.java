@@ -3,6 +3,7 @@ package team.rehoukrelstudio.monoitem.api;
 import org.bukkit.inventory.ItemStack;
 import team.rehoukrelstudio.monoitem.MonoItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
+import team.rehoukrelstudio.monoitem.api.fixed.Requirement;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import utils.DataConverter;
 
@@ -42,8 +43,10 @@ public class UnidentifiedItem {
         }else{
             this.type = "default";
         }
-        factory.setUnidentified(true, getRarity());
+
+        factory.setRequirement(Requirement.LEVEL, level);
         generateStats();
+        factory.setUnidentified(true, getRarity());
     }
 
     public UnidentifiedItem(ItemStack item, int level, String rarity){
@@ -88,7 +91,7 @@ public class UnidentifiedItem {
             min = DataConverter.convertStringToDouble(fMin);
             max = DataConverter.convertStringToDouble(fMax);
 
-            getFactory().setStats(e, min, max, true);
+            getFactory().setStats(e, min, max, false);
         }
 
     }

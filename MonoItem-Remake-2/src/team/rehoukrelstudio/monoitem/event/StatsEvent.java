@@ -142,8 +142,7 @@ public class StatsEvent implements Listener {
                             return;
                         }
                         if (f.hasOption(OptionEnum.DISABLE_ON_WATER)){
-                            event.getEntity().sendMessage(" " + f.getOption(OptionEnum.DISABLE_ON_LAND));
-                            if (Boolean.parseBoolean(f.getOption(OptionEnum.DISABLE_ON_LAND).toString())) {
+                            if (Boolean.parseBoolean(f.getOption(OptionEnum.DISABLE_ON_WATER).toString())) {
                                 if (eye.getBlock().isLiquid()) {
                                     event.setCancelled(true);
                                     return;
@@ -233,7 +232,7 @@ public class StatsEvent implements Listener {
 
                 if (factory.hasOption(OptionEnum.RANGED_ONLY)) {
                     if (factory.getOption(OptionEnum.RANGED_ONLY).toString().equalsIgnoreCase("true")) {
-                        if (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+                        if (!event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
                             continue;
                         }
                     }

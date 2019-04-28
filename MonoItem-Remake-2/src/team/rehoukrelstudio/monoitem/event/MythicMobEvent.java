@@ -41,7 +41,7 @@ public class MythicMobEvent implements Listener {
             String rarity = "";
             UnidentifiedItem unidentifiedItem = null;
             List<String> rr = new ArrayList<>(MonoItem.unidentConfigManager.getConfig().getConfigurationSection("unidentified-item.table").getKeys(false));
-            for (int i = rr.size() - 1; i > 0;i++){
+            for (int i = rr.size() - 1; i >= 0;i--){
                 String r = rr.get(i);
                 String path = "unidentified-item.table." + r + ".mob-drop-chance";
                 if (Ability.chance(MonoItem.unidentConfigManager.getConfig().getDouble(path))){
@@ -67,11 +67,6 @@ public class MythicMobEvent implements Listener {
                 mat = MonoFactory.getWeapon().get(new Random().nextInt(MonoFactory.getWeapon().size() - 1));
             }else{
                 mat = MonoFactory.getArmor().get(new Random().nextInt(MonoFactory.getArmor().size() - 1));
-            }
-
-            if (event.getKiller().getName().equalsIgnoreCase("TiveCS")){
-                Bukkit.getPlayer("TiveCS").sendMessage(event.getKiller().getName() + " Get item " + rarity );
-                return;
             }
 
             ItemStack item = new ItemStack(mat);

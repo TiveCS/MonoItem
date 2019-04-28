@@ -11,6 +11,7 @@ softdepend:
 commands:
     identify:
       description: Identify item on hand
+      permission: monoitem.command.identify
       aliases: [appraise]
     monoitem:
       permission: monoitem.command

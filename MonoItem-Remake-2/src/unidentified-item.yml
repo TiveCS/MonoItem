@@ -83,7 +83,7 @@ unidentified-item:
   table:
     Legendary:
       mob-drop-chance: 0.01
-      multiplier-result: 2.85
+      multiplier-result: 2.4
       identify-price-multiplier: 3
       prefix: '&b'
       durability:
@@ -104,7 +104,7 @@ unidentified-item:
           - '&bLegendary item'
     Rare:
       mob-drop-chance: 0.087
-      multiplier-result: 2.25
+      multiplier-result: 1.72
       identify-price-multiplier: 2
       prefix: '&d'
       durability:
@@ -124,8 +124,8 @@ unidentified-item:
           - ' '
           - '&dRare item'
     Unique:
-      mob-drop-chance: 0.3
-      multiplier-result: 1.5
+      mob-drop-chance: 0.2
+      multiplier-result: 1.2
       identify-price-multiplier: 1.25
       prefix: '&e'
       durability:
@@ -145,8 +145,8 @@ unidentified-item:
           - ' '
           - '&eUnique item'
     Common:
-      mob-drop-chance: 1
-      multiplier-result: 1.2
+      mob-drop-chance: 0.4
+      multiplier-result: 1
       identify-price-multiplier: 1
       prefix: '&a'
       durability:
@@ -165,3 +165,24 @@ unidentified-item:
         lore:
           - ' '
           - '&aCommon item'
+    Trash:
+      mob-drop-chance: 0.7
+      multiplier-result: 0.5
+      identify-price-multiplier: 0.5
+      prefix: '&8'
+      durability:
+        unbreakable: false # Force unbreakable
+        base: 297 # Forcing have base on this value
+      stats:
+        amount:
+          minimum: 1
+          maximum: 1
+      ability:
+        amount:
+          minimum: 0
+          maximum: 0
+      item:
+        display-name: '&8Unidentified Item'
+        lore:
+          - ' '
+          - '&7Trash item'

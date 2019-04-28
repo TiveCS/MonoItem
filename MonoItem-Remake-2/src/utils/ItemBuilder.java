@@ -40,7 +40,7 @@ public class ItemBuilder {
     }
 
     public void setLore(List<String> l){
-        getMeta().setLore(l);
+        getMeta().setLore(DataConverter.colored(l));
     }
 
     public void insertLore(List<String> l, int insertAt){
@@ -52,7 +52,7 @@ public class ItemBuilder {
                 newLore.add(" ");
             }
             newLore.addAll(l);
-            getMeta().setLore(newLore);
+            getMeta().setLore(DataConverter.colored(newLore));
         }
     }
 

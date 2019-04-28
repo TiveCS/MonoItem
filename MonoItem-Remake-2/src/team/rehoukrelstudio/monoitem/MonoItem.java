@@ -95,6 +95,7 @@ public class MonoItem extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AbilityEvent(), this);
         getServer().getPluginManager().registerEvents(new StatsEvent(), this);
         getServer().getPluginManager().registerEvents(new MenuEvent(), this);
+        getServer().getPluginManager().registerEvents(new CmdIdentify(), this);
 
         if (softdependency.contains("MythicMobs")) {
             getServer().getPluginManager().registerEvents(new MythicMobEvent(), this);

@@ -12,6 +12,7 @@ import team.rehoukrelstudio.monoitem.api.MonoFactory;
 import team.rehoukrelstudio.monoitem.api.UnidentifiedItem;
 import team.rehoukrelstudio.monoitem.api.ability.Ability;
 import team.rehoukrelstudio.monoitem.api.fixed.OptionEnum;
+import team.rehoukrelstudio.monoitem.api.fixed.Requirement;
 import team.rehoukrelstudio.monoitem.api.fixed.StatsEnum;
 import team.rehoukrelstudio.monoitem.menu.AbilityMenu;
 import team.rehoukrelstudio.monoitem.menu.FactoryMenu;
@@ -53,6 +54,7 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                         plugin.loadAbilities();
                         return true;
                     }
+
                     if (strings[0].equalsIgnoreCase("edit")){
                         FactoryMenu menu = new FactoryMenu();
                         if (!p.getInventory().getItemInMainHand().getType().equals(Material.AIR)){
@@ -79,6 +81,12 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
                     }
                 }
                 if (strings.length > 1){
+                    if (strings[0].equalsIgnoreCase("requirement")){
+                        MonoFactory factory = new MonoFactory(p.getInventory().getItemInMainHand());
+                        factory.setRequirement(Requirement.valueOf(strings[1].toUpperCase()), Double.parseDouble(strings[2]));
+                        p.getInventory().setItemInMainHand(factory.getItem());
+                        return true;
+                    }
                     if (strings[0].equalsIgnoreCase("options")){
                         try{
                             boolean stat = Boolean.parseBoolean(strings[2]);
@@ -149,9 +157,16 @@ public class CmdMonoItem implements CommandExecutor, TabCompleter {
             list.add("edit");
             list.add("ability");
             list.add("options");
+            list.add("requirement");
             return list;
         }
         if (strings.length == 2){
+            if (strings[0].equalsIgnoreCase("requirement")) {
+                for (Requirement e : Requirement.values()) {
+                    list.add(e.name());
+                }
+                return list;
+            }
             if (strings[0].equalsIgnoreCase("stats")) {
                 for (StatsEnum e : StatsEnum.values()) {
                     list.add(e.name());
